@@ -1,10 +1,18 @@
-import { updateDescendants, buildMeta } from "vcssom";
+import VCSSOM, { buildMeta } from "vcssom";
 
 const RED = `rgb(255, 0, 0)`;
 const GREEN = `rgb(0, 255, 0)`;
 const BLACK = `rgb(0, 0, 0)`;
 
-QUnit.module("VCSSOM");
+let vcssom;
+
+QUnit.module("VCSSOM", {
+  afterEach() {
+    if (vcssom) {
+      vcssom.disconnect();
+    }
+  }
+});
 
 QUnit.test("Basic variable usage with :root", (assert) => {
   let css = `
@@ -18,13 +26,16 @@ QUnit.test("Basic variable usage with :root", (assert) => {
     }
   `;
 
+  let html = `<span id="subject">Hello</span>`;
+
   injectStyles(css);
 
-  injectContent(`
-    <span id="subject">Hello</span>
-  `);
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
 
-  updateDescendants(buildMeta(css), getFixture());
+  injectContent(html);
+
+  vcssom.forceUpdate();
 
   equalStyle(getSubject(), {
     "background-color": BLACK,
@@ -44,20 +55,22 @@ QUnit.test("Basic variable usage with a class", (assert) => {
     }
   `;
 
+  let html = `<span id="subject" class="foo">Hello</span>`;
+
   injectStyles(css);
 
-  injectContent(`
-    <span id="subject" class="foo">Hello</span>
-  `);
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
 
-  updateDescendants(buildMeta(css), getFixture());
+  injectContent(html);
+
+  vcssom.forceUpdate();
 
   equalStyle(getSubject(), {
     "background-color": BLACK,
     "color": RED
   });
 });
-
 
 QUnit.test("Basic shadowing", (assert) => {
   let css = `
@@ -75,14 +88,64 @@ QUnit.test("Basic shadowing", (assert) => {
     }
   `;
 
-  injectStyles(css);
-
-  injectContent(`
+  let html = `
     <span id="subject-1">Hello</span>
     <span id="subject-2" class="foo">Hello</span>
-  `);
+  `;
 
-  updateDescendants(buildMeta(css), getFixture());
+  injectStyles(css);
+
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
+
+  injectContent(html);
+
+  vcssom.forceUpdate();
+
+  equalStyle(getSubject(1), {
+    "background-color": BLACK,
+    "color": RED
+  });
+
+  equalStyle(getSubject(2), {
+    "background-color": BLACK,
+    "color": GREEN
+  });
+});
+
+QUnit.test("Attribute mutation", (assert) => {
+  let css = `
+    :root {
+      --main-color: ${RED};
+    }
+
+    .foo {
+      --main-color: ${GREEN};
+    }
+
+    span {
+      background-color: ${BLACK};
+      color: var(--main-color);
+    }
+  `;
+
+  let html = `
+    <span id="subject-1">Hello</span>
+    <span id="subject-2">Hello</span>
+  `;
+
+  injectStyles(css);
+
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
+
+  injectContent(html);
+
+  vcssom.forceUpdate();
+
+  getSubject(2).className = "foo";
+
+  vcssom.forceUpdate();
 
   equalStyle(getSubject(1), {
     "background-color": BLACK,
