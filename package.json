@@ -1,0 +1,29 @@
+{
+  "name": "vcssom",
+  "version": "0.0.1",
+  "description": "VCSSOM is a compiler for writing next generation stylesheets.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ebryn/vcssom.git"
+  },
+  "author": "Martin Muñoz <im.mmun@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ebryn/vcssom/issues"
+  },
+  "homepage": "https://github.com/ebryn/vcssom",
+  "devDependencies": {
+    "broccoli": "^0.16.2",
+    "broccoli-babel-transpiler": "^5.0.0",
+    "broccoli-funnel": "^0.2.3",
+    "broccoli-merge-trees": "^0.2.1",
+    "broccoli-sourcemap-concat": "^0.4.4",
+    "loader.js": "^3.2.0",
+    "qunitjs": "^1.18.0",
+    "testem": "^0.8.3"
+  }
+}

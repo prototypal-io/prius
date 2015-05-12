@@ -1,0 +1,10 @@
+{
+  "test_page": "test/testem.html",
+  "parallel": 5,
+  "before_tests": "rm -rf dist && broccoli build dist",
+  "src_files": [
+    "Brocfile.js",
+    "lib/**/*.js",
+    "test/*.js"
+  ]
+}
