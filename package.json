@@ -22,6 +22,8 @@
     "broccoli-funnel": "^0.2.3",
     "broccoli-merge-trees": "^0.2.1",
     "broccoli-sourcemap-concat": "^0.4.4",
+    "broccoli-string-replace": "0.0.2",
+    "css": "^2.2.0",
     "loader.js": "^3.2.0",
     "qunitjs": "^1.18.0",
     "testem": "^0.8.3"

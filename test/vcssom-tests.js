@@ -1,4 +1,4 @@
-import { updateDescendants } from "vcssom";
+import { updateDescendants, buildMeta } from "vcssom";
 
 const RED = `rgb(255, 0, 0)`;
 const GREEN = `rgb(0, 255, 0)`;
@@ -7,7 +7,7 @@ const BLACK = `rgb(0, 0, 0)`;
 QUnit.module("VCSSOM");
 
 QUnit.test("Basic variable usage with :root", (assert) => {
-  injectStyles(`
+  let css = `
     :root {
       --main-color: ${RED};
     }
@@ -16,33 +16,15 @@ QUnit.test("Basic variable usage with :root", (assert) => {
       background-color: ${BLACK};
       color: var(--main-color);
     }
-  `);
+  `;
 
-  let meta = {
-    dynamicSelectors: [{
-      selector: "span",
-      dynamicDeclarations: [{
-        property: "color",
-        expression: "--main-color"
-      }]
-    }],
-
-    customProperties: {
-      ":root": {
-        "--main-color": RED
-      }
-    },
-
-    selectorsForCustomProperty: {
-      "--main-color": [":root"]
-    }
-  }
+  injectStyles(css);
 
   injectContent(`
     <span id="subject">Hello</span>
   `);
 
-  updateDescendants(meta, getFixture());
+  updateDescendants(buildMeta(css), getFixture());
 
   equalStyle(getSubject(), {
     "background-color": BLACK,
@@ -51,7 +33,7 @@ QUnit.test("Basic variable usage with :root", (assert) => {
 });
 
 QUnit.test("Basic variable usage with a class", (assert) => {
-  injectStyles(`
+  let css = `
     .foo {
       --main-color: ${RED};
     }
@@ -60,34 +42,15 @@ QUnit.test("Basic variable usage with a class", (assert) => {
       background-color: ${BLACK};
       color: var(--main-color);
     }
-  `);
+  `;
 
-  let meta = {
-    dynamicSelectors: [{
-      selector: "span",
-      dynamicDeclarations: [{
-        property: "color",
-        expression: "--main-color"
-      }]
-    }],
-
-    customProperties: {
-      ":root": {},
-      ".foo": {
-        "--main-color": RED
-      }
-    },
-
-    selectorsForCustomProperty: {
-      "--main-color": [".foo"]
-    }
-  }
+  injectStyles(css);
 
   injectContent(`
     <span id="subject" class="foo">Hello</span>
   `);
 
-  updateDescendants(meta, getFixture());
+  updateDescendants(buildMeta(css), getFixture());
 
   equalStyle(getSubject(), {
     "background-color": BLACK,
@@ -97,7 +60,7 @@ QUnit.test("Basic variable usage with a class", (assert) => {
 
 
 QUnit.test("Basic shadowing", (assert) => {
-  injectStyles(`
+  let css = `
     :root {
       --main-color: ${RED};
     }
@@ -110,37 +73,16 @@ QUnit.test("Basic shadowing", (assert) => {
       background-color: ${BLACK};
       color: var(--main-color);
     }
-  `);
+  `;
 
-  let meta = {
-    dynamicSelectors: [{
-      selector: "span",
-      dynamicDeclarations: [{
-        property: "color",
-        expression: "--main-color"
-      }]
-    }],
-
-    customProperties: {
-      ":root": {
-        "--main-color": RED
-      },
-      ".foo": {
-        "--main-color": GREEN
-      }
-    },
-
-    selectorsForCustomProperty: {
-      "--main-color": [":root", ".foo"]
-    }
-  }
+  injectStyles(css);
 
   injectContent(`
     <span id="subject-1">Hello</span>
     <span id="subject-2" class="foo">Hello</span>
   `);
 
-  updateDescendants(meta, getFixture());
+  updateDescendants(buildMeta(css), getFixture());
 
   equalStyle(getSubject(1), {
     "background-color": BLACK,
