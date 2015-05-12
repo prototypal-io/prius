@@ -1,7 +1,9 @@
-QUnit.module("VCSSOM");
+import { updateDescendants } from "vcssom";
 
 const RED = `rgb(255, 0, 0)`;
 const BLACK = `rgb(0, 0, 0)`;
+
+QUnit.module("VCSSOM");
 
 QUnit.test("Basic variable usage", (assert) => {
   injectStyles(`
@@ -15,9 +17,31 @@ QUnit.test("Basic variable usage", (assert) => {
     }
   `);
 
+  let meta = {
+    dynamicSelectors: [{
+      selector: "span",
+      dynamicDeclarations: [{
+        property: "color",
+        expression: "--main-color"
+      }]
+    }],
+
+    customProperties: {
+      ":root": {
+        "--main-color": RED
+      }
+    },
+
+    selectorsForCustomProperty: {
+      "--main-color": [":root"]
+    }
+  }
+
   injectContent(`
     <span id="subject">Hello</span>
   `);
+
+  updateDescendants(meta, getFixture());
 
   equalStyle(getSubject(), {
     "background-color": BLACK,
