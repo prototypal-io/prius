@@ -349,6 +349,34 @@ QUnit.test("Cycles throw an error instead of endlessly looping", assert => {
   });
 });
 
+QUnit.test("Using a var in the same rule", assert => {
+  let css = `
+    :root {
+      --x: 13px;
+    }
+
+    .foo {
+      --x: 11px;
+      font-size: var(--x);
+    }
+  `;
+
+  let html = `<span class="foo" id="subject">Hello</span>`;
+
+  injectStyles(css);
+
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
+
+  injectContent(html);
+
+  vcssom.forceUpdate();
+
+  equalStyle(getSubject(), {
+    "font-size": "11px"
+  });
+});
+
 function getFixture() {
   return document.getElementById('qunit-fixture');
 }
