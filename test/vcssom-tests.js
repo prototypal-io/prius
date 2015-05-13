@@ -202,7 +202,7 @@ QUnit.test("Attribute mutation updates children", assert => {
   });
 });
 
-QUnit.test("Deep var expressions", assert => {
+QUnit.test("Complex expressions with multiple var expressions", assert => {
   let css = `
     :root {
       --x1: 40px;
@@ -249,6 +249,76 @@ QUnit.test("Deep var expressions", assert => {
   });
 });
 
+QUnit.test("Chained var expressions", assert => {
+  let css = `
+    :root {
+      --x: 40px;
+    }
+
+    .foo {
+      --y: calc(var(--x) / 2);
+    }
+
+    .bar {
+      font-size: var(--y);
+    }
+  `;
+
+  let html = `
+    <span class="foo">
+      <span class="bar" id="subject">Hello</span>
+    </span>
+  `;
+
+  injectStyles(css);
+
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
+
+  injectContent(html);
+
+  vcssom.forceUpdate();
+
+  equalStyle(getSubject(), {
+    "font-size": "20px"
+  });
+});
+
+QUnit.test("Chained var expressions with shadowing", assert => {
+  let css = `
+    :root {
+      --x: 40px;
+    }
+
+    .foo {
+      --y: calc(var(--x) / 2);
+    }
+
+    .bar {
+      --x: 60px;
+      font-size: var(--y);
+    }
+  `;
+
+  let html = `
+    <span class="foo">
+      <span class="bar" id="subject">Hello</span>
+    </span>
+  `;
+
+  injectStyles(css);
+
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
+
+  injectContent(html);
+
+  vcssom.forceUpdate();
+
+  equalStyle(getSubject(), {
+    "font-size": "30px"
+  });
+});
 
 function getFixture() {
   return document.getElementById('qunit-fixture');
