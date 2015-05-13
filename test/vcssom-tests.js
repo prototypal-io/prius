@@ -217,7 +217,7 @@ QUnit.test("Deep var expressions", assert => {
     }
 
     .bar {
-      left: calc(var(--x1) - var(--x2));
+      font-size: calc(var(--x1) - var(--x2));
     }
   `;
 
@@ -237,7 +237,7 @@ QUnit.test("Deep var expressions", assert => {
   vcssom.forceUpdate();
 
   equalStyle(getSubject(2), {
-    "left": "27px"
+    "font-size": "27px"
   });
 
   getSubject(1).className = "foo2";
@@ -245,7 +245,7 @@ QUnit.test("Deep var expressions", assert => {
   vcssom.forceUpdate();
 
   equalStyle(getSubject(2), {
-    "left": "18px"
+    "font-size": "18px"
   });
 });
 
