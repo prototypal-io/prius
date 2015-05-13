@@ -202,6 +202,54 @@ QUnit.test("Attribute mutation updates children", assert => {
   });
 });
 
+QUnit.test("Deep var expressions", assert => {
+  let css = `
+    :root {
+      --x1: 40px;
+    }
+
+    .foo1 {
+      --x2: 13px;
+    }
+
+    .foo2 {
+      --x2: 22px;
+    }
+
+    .bar {
+      left: calc(var(--x1) - var(--x2));
+    }
+  `;
+
+  let html = `
+    <span class="foo1" id="subject-1">
+      <span class="bar" id="subject-2">Hello</span>
+    </span>
+  `;
+
+  injectStyles(css);
+
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
+
+  injectContent(html);
+
+  vcssom.forceUpdate();
+
+  equalStyle(getSubject(2), {
+    "left": "27px"
+  });
+
+  getSubject(1).className = "foo2";
+
+  vcssom.forceUpdate();
+
+  equalStyle(getSubject(2), {
+    "left": "18px"
+  });
+});
+
+
 function getFixture() {
   return document.getElementById('qunit-fixture');
 }
