@@ -14,7 +14,7 @@ QUnit.module("VCSSOM", {
   }
 });
 
-QUnit.test("Basic variable usage with :root", (assert) => {
+QUnit.test("Basic variable usage with :root", assert => {
   let css = `
     :root {
       --main-color: ${RED};
@@ -43,7 +43,7 @@ QUnit.test("Basic variable usage with :root", (assert) => {
   });
 });
 
-QUnit.test("Basic variable usage with a class", (assert) => {
+QUnit.test("Basic variable usage with a class", assert => {
   let css = `
     .foo {
       --main-color: ${RED};
@@ -72,7 +72,7 @@ QUnit.test("Basic variable usage with a class", (assert) => {
   });
 });
 
-QUnit.test("Basic shadowing", (assert) => {
+QUnit.test("Basic shadowing", assert => {
   let css = `
     :root {
       --main-color: ${RED};
@@ -113,7 +113,7 @@ QUnit.test("Basic shadowing", (assert) => {
   });
 });
 
-QUnit.test("Attribute mutation", (assert) => {
+QUnit.test("Attribute mutation", assert => {
   let css = `
     :root {
       --main-color: ${RED};
@@ -158,7 +158,7 @@ QUnit.test("Attribute mutation", (assert) => {
   });
 });
 
-QUnit.test("Attribute mutation updates children", (assert) => {
+QUnit.test("Attribute mutation updates children", assert => {
   let css = `
     :root {
       --main-color: ${RED};
