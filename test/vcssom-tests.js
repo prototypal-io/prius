@@ -320,6 +320,35 @@ QUnit.test("Chained var expressions with shadowing", assert => {
   });
 });
 
+QUnit.test("Cycles throw an error instead of endlessly looping", assert => {
+  let css = `
+    :root {
+      --x: var(--y);
+    }
+
+    .foo {
+      --y: var(--x);
+    }
+
+    .bar {
+      font-size: var(--y);
+    }
+  `;
+
+  let html = `<span class="foo bar" id="subject">Hello</span>`;
+
+  injectStyles(css);
+
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
+
+  injectContent(html);
+
+  assert.throws(() => {
+    vcssom.forceUpdate();
+  });
+});
+
 function getFixture() {
   return document.getElementById('qunit-fixture');
 }
