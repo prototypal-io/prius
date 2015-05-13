@@ -158,6 +158,50 @@ QUnit.test("Attribute mutation", (assert) => {
   });
 });
 
+QUnit.test("Attribute mutation updates children", (assert) => {
+  let css = `
+    :root {
+      --main-color: ${RED};
+    }
+
+    .foo {
+      --main-color: ${GREEN};
+    }
+
+    .bar {
+      color: var(--main-color);
+    }
+  `;
+
+  let html = `
+    <span id="subject-1">Hello</span>
+    <span id="subject-2">
+      <span id="subject-3" class="bar">Hello</span>
+    </span>
+  `;
+
+  injectStyles(css);
+
+  vcssom = new VCSSOM(buildMeta(css));
+  vcssom.observe(getFixture());
+
+  injectContent(html);
+
+  vcssom.forceUpdate();
+
+  equalStyle(getSubject(3), {
+    "color": RED
+  });
+
+  getSubject(2).className = "foo";
+
+  vcssom.forceUpdate();
+
+  equalStyle(getSubject(3), {
+    "color": GREEN
+  });
+});
+
 function getFixture() {
   return document.getElementById('qunit-fixture');
 }
