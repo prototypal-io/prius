@@ -1,44 +1,21 @@
-var funnel = require('broccoli-funnel');
-var merge = require('broccoli-merge-trees');
-var babel = require('broccoli-babel-transpiler');
-var concat = require('broccoli-sourcemap-concat');
-var replace = require('broccoli-string-replace');
+/* jshint node: true */
+/* global require, module */
 
-var lib = merge(['lib', getCSSParserTree()]);
-var tests = funnel('test', { include: ['*.js'] });
+var EmberAddon = require('ember-cli/lib/broccoli/ember-addon');
 
-module.exports = merge([
-  compileAndConcat(lib, 'vcssom.js'),
-  compileAndConcat(tests, 'vcssom-tests.js')
-]);
+var app = new EmberAddon();
 
-function compileAndConcat(tree, outputFile) {
-  var babelled = babel(tree, {
-    modules: 'amdStrict',
-    moduleIds: true
-  });
+// Use `app.import` to add additional libraries to the generated
+// output files.
+//
+// If you need to use different assets in different
+// environments, specify an object as the first parameter. That
+// object's keys should be the environment name and the values
+// should be the asset to use in that environment.
+//
+// If the library that you are including contains AMD or ES6
+// modules that you would like to import into your application
+// please specify an object with the list of modules as keys
+// along with the exports of each module as its value.
 
-  var concatted = concat(babelled, {
-    inputFiles: ['**'],
-    outputFile: outputFile
-  });
-
-  return concatted;
-}
-
-function getCSSParserTree() {
-  var css = funnel('node_modules/css/lib/parse', {
-    destDir: 'vcssom',
-    getDestinationPath: function() {
-      return 'parser.js';
-    }
-  });
-
-  return replace(css, {
-    files: ['vcssom/parser.js'],
-    pattern: {
-      match: "module.exports =",
-      replacement: "export default"
-    }
-  });
-}
+module.exports = app.toTree();

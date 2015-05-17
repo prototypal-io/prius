@@ -1,11 +1,9 @@
-import { updateTree, updateNode, updateDescendants } from './vcssom/dom';
-import { buildMeta } from './vcssom/meta';
+import { updateTree, updateNode, updateDescendants } from './dom';
 
 export {
   updateTree,
   updateNode,
-  updateDescendants,
-  buildMeta
+  updateDescendants
 };
 
 export default class VCSSOM {
@@ -17,7 +15,7 @@ export default class VCSSOM {
     });
   }
 
-  observe(node) {
+  observe(node=document.body) {
     this.mutationObserver.observe(node, {
       attributes: true,
       childList: true,

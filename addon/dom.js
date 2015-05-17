@@ -4,6 +4,8 @@ export function updateTree(meta, element) {
 }
 
 export function updateNode(meta, element) {
+  if (element.nodeType !== 1) { return; }
+
   let { dynamicSelectors } = meta;
 
   for (let selector in dynamicSelectors) {
@@ -14,6 +16,8 @@ export function updateNode(meta, element) {
 }
 
 export function updateDescendants(meta, element) {
+  if (element.nodeType !== 1) { return; }
+
   let { dynamicSelectors } = meta;
 
   for (let selector in dynamicSelectors) {
