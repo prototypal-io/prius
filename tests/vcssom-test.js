@@ -71,6 +71,21 @@ test('complex shadowing', function(assert) {
   assert.equalStyle(getSubject(5), { "font-size": '40px' });
 });
 
+test('rule merging', function(assert) {
+  setContent(`
+    <span class="rule-merge-test">
+      <span id="subject" class="rule-merge-test-item"></span>
+    </span>
+  `);
+
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "background-color": RED,
+    "color": GREEN
+  });
+});
+
 function getSubject(id) {
   return document.getElementById(id ? `subject-${id}` : 'subject');
 }

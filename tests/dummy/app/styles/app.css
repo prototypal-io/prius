@@ -27,3 +27,14 @@
 .complex-shadowing-test-bar {
   font-size: var(--bar);
 }
+
+.rule-merge-test {
+  --foo: rgb(255, 0, 0);
+}
+.rule-merge-test {
+  --bar: rgb(0, 255, 0);
+}
+.rule-merge-test-item {
+  background-color: var(--foo);
+  color: var(--bar);
+}
