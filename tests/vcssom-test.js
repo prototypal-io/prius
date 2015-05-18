@@ -37,6 +37,16 @@ test('basic test', function(assert) {
   });
 });
 
+test('default value', function(assert) {
+  setContent(`<span id="subject" class="default-value-test">Hello</span>`);
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "background-color": BLACK,
+    "color": GREEN
+  });
+});
+
 function getSubject(id) {
   return document.getElementById(id ? `subject-${id}` : 'subject');
 }

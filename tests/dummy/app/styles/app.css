@@ -6,3 +6,8 @@
   background-color: rgb(0, 0, 0);
   color: var(--main-color);
 }
+
+.default-value-test {
+  background-color: rgb(0, 0, 0);
+  color: var(--secondary-color, rgb(0, 255, 0));
+}
