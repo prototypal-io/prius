@@ -62,14 +62,14 @@ function evaluateVarExpression(meta, element, { strings, vars }) {
 }
 
 function closestValue(meta, element, customProperty) {
-  let selector = closestSelectorWithCustomProperty(meta, element, customProperty);
-  if (selector) {
-    let expression = meta.dynamicSelectors[selector][customProperty];
-    return evaluateExpression(meta, element, expression);
+  let closest = closestWithCustomProperty(meta, element, customProperty);
+  if (closest) {
+    let expression = meta.dynamicSelectors[closest.selector][customProperty];
+    return evaluateExpression(meta, closest.ancestor, expression);
   }
 }
 
-function closestSelectorWithCustomProperty(meta, element, customProperty) {
+function closestWithCustomProperty(meta, element, customProperty) {
   let selectors = meta.selectorsForCustomProperty[customProperty];
 
   if (selectors) {
@@ -80,13 +80,13 @@ function closestSelectorWithCustomProperty(meta, element, customProperty) {
         let selector = selectors[i];
 
         if (ancestor.matches(selector)) {
-          return selector;
+          return { ancestor, selector };
         }
       }
 
       ancestor = ancestor.parentNode;
     }
 
-    return ':root';
+    return { ancestor: null, selector: ':root' };
   }
 }

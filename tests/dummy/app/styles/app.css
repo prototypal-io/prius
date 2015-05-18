@@ -11,3 +11,19 @@
   background-color: rgb(0, 0, 0);
   color: var(--secondary-color, rgb(0, 255, 0));
 }
+
+.complex-shadowing-test-one {
+  --foo: 40px;
+}
+.complex-shadowing-test-two {
+  --bar: var(--foo);
+}
+.complex-shadowing-test-three {
+  --foo: calc(var(--bar) + 5px);
+}
+.complex-shadowing-test-foo {
+  font-size: var(--foo);
+}
+.complex-shadowing-test-bar {
+  font-size: var(--bar);
+}

@@ -47,6 +47,30 @@ test('default value', function(assert) {
   });
 });
 
+test('complex shadowing', function(assert) {
+  setContent(`
+    <span class="complex-shadowing-test-one">
+      <span id="subject-1" class="complex-shadowing-test-foo"></span>
+      <span class="complex-shadowing-test-two">
+        <span id="subject-2" class="complex-shadowing-test-foo"></span>
+        <span id="subject-3" class="complex-shadowing-test-bar"></span>
+        <span class="complex-shadowing-test-three">
+          <span id="subject-4" class="complex-shadowing-test-foo"></span>
+          <span id="subject-5" class="complex-shadowing-test-bar"></span>
+        </span>
+      </span>
+    </span>
+  `);
+
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(1), { "font-size": '40px' });
+  assert.equalStyle(getSubject(2), { "font-size": '40px' });
+  assert.equalStyle(getSubject(3), { "font-size": '40px' });
+  assert.equalStyle(getSubject(4), { "font-size": '45px' });
+  assert.equalStyle(getSubject(5), { "font-size": '40px' });
+});
+
 function getSubject(id) {
   return document.getElementById(id ? `subject-${id}` : 'subject');
 }
