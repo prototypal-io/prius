@@ -88,6 +88,23 @@ test('rule merging', function(assert) {
   });
 });
 
+test('basic attribute mutation', function(assert) {
+  setContent(`
+    <span id="subject-1" class="foo">
+      <span id="subject-2" class="item"></span>
+    </span>
+  `);
+
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(2), { "color": RED });
+
+  getSubject(1).className = "bar";
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(2), { "color": GREEN });
+});
+
 function getSubject(id) {
   return document.getElementById(id ? `subject-${id}` : 'subject');
 }

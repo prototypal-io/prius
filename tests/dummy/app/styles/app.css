@@ -39,12 +39,12 @@
   color: var(--rule-merging-bar);
 }
 
-.basic-attribute-mutation .foo {
-  --basic-attribute-mutation-color: rgb(255, 0, 0);
+.class-attribute-mutation .foo {
+  --class-attribute-mutation-color: rgb(255, 0, 0);
 }
-.basic-attr-mutation-test .bar {
-  --basic-attribute-mutation-color: rgb(0, 255, 0);
+.class-attribute-mutation .bar {
+  --class-attribute-mutation-color: rgb(0, 255, 0);
 }
-.basic-attr-mutation-test .item {
-  color: var(--basic-attribute-mutation-color);
+.class-attribute-mutation .item {
+  color: var(--class-attribute-mutation-color);
 }
