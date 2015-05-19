@@ -2,39 +2,49 @@
   --main-color: rgb(255, 0, 0);
 }
 
-.basic-test {
+.basic-styling .item {
   background-color: rgb(0, 0, 0);
   color: var(--main-color);
 }
 
-.default-value-test {
+.default-value .item {
   background-color: rgb(0, 0, 0);
   color: var(--secondary-color, rgb(0, 255, 0));
 }
 
-.complex-shadowing-test-one {
+.complex-shadowing .one {
   --complex-shadowing-foo: 40px;
 }
-.complex-shadowing-test-two {
+.complex-shadowing .two {
   --complex-shadowing-bar: var(--complex-shadowing-foo);
 }
-.complex-shadowing-test-three {
+.complex-shadowing .three {
   --complex-shadowing-foo: calc(var(--complex-shadowing-bar) + 5px);
 }
-.complex-shadowing-test-foo {
+.complex-shadowing .foo {
   font-size: var(--complex-shadowing-foo);
 }
-.complex-shadowing-test-bar {
+.complex-shadowing .bar {
   font-size: var(--complex-shadowing-bar);
 }
 
-.rule-merge-test {
-  --rule-merge-foo: rgb(255, 0, 0);
+.rule-merging {
+  --rule-merging-foo: rgb(255, 0, 0);
 }
-.rule-merge-test {
-  --rule-merge-bar: rgb(0, 255, 0);
+.rule-merging {
+  --rule-merging-bar: rgb(0, 255, 0);
 }
-.rule-merge-test-item {
-  background-color: var(--rule-merge-foo);
-  color: var(--rule-merge-bar);
+.rule-merging .item {
+  background-color: var(--rule-merging-foo);
+  color: var(--rule-merging-bar);
+}
+
+.basic-attribute-mutation .foo {
+  --basic-attribute-mutation-color: rgb(255, 0, 0);
+}
+.basic-attr-mutation-test .bar {
+  --basic-attribute-mutation-color: rgb(0, 255, 0);
+}
+.basic-attr-mutation-test .item {
+  color: var(--basic-attribute-mutation-color);
 }

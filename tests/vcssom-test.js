@@ -3,22 +3,26 @@ import QUnit, { module, test } from 'qunit';
 import startApp from './helpers/start-app';
 
 var application, container, vcssom;
+var appElement;
 
 injectEqualStyleAssertion();
 
 function setContent(html) {
-  var appElement = document.querySelector(application.rootElement);
   appElement.innerHTML = html;
 }
 
 module('vcssom', {
-  beforeEach() {
+  beforeEach(assert) {
     application = startApp();
     container = application.__container__;
     vcssom = container.lookup('service:vcssom');
+
+    appElement = document.querySelector(application.rootElement);
+    appElement.className = Ember.String.dasherize(assert.test.testName);
   },
 
   afterEach() {
+    appElement.className = "";
     Ember.run(application, 'destroy');
   }
 });
@@ -27,8 +31,8 @@ const RED = `rgb(255, 0, 0)`;
 const GREEN = `rgb(0, 255, 0)`;
 const BLACK = `rgb(0, 0, 0)`;
 
-test('basic test', function(assert) {
-  setContent(`<span id="subject" class="basic-test">Hello</span>`);
+test('basic styling', function(assert) {
+  setContent(`<span id="subject" class="item">Hello</span>`);
   vcssom.forceUpdate();
 
   assert.equalStyle(getSubject(), {
@@ -38,7 +42,7 @@ test('basic test', function(assert) {
 });
 
 test('default value', function(assert) {
-  setContent(`<span id="subject" class="default-value-test">Hello</span>`);
+  setContent(`<span id="subject" class="item">Hello</span>`);
   vcssom.forceUpdate();
 
   assert.equalStyle(getSubject(), {
@@ -49,14 +53,14 @@ test('default value', function(assert) {
 
 test('complex shadowing', function(assert) {
   setContent(`
-    <span class="complex-shadowing-test-one">
-      <span id="subject-1" class="complex-shadowing-test-foo"></span>
-      <span class="complex-shadowing-test-two">
-        <span id="subject-2" class="complex-shadowing-test-foo"></span>
-        <span id="subject-3" class="complex-shadowing-test-bar"></span>
-        <span class="complex-shadowing-test-three">
-          <span id="subject-4" class="complex-shadowing-test-foo"></span>
-          <span id="subject-5" class="complex-shadowing-test-bar"></span>
+    <span class="one">
+      <span class="foo" id="subject-1"></span>
+      <span class="two">
+        <span class="foo" id="subject-2"></span>
+        <span class="bar" id="subject-3"></span>
+        <span class="three">
+          <span class="foo" id="subject-4"></span>
+          <span class="bar" id="subject-5"></span>
         </span>
       </span>
     </span>
@@ -73,9 +77,7 @@ test('complex shadowing', function(assert) {
 
 test('rule merging', function(assert) {
   setContent(`
-    <span class="rule-merge-test">
-      <span id="subject" class="rule-merge-test-item"></span>
-    </span>
+    <span id="subject" class="item"></span>
   `);
 
   vcssom.forceUpdate();
