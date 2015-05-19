@@ -1,5 +1,4 @@
-const vcssomIdPrefix = "vcssom-id-";
-// const vcssomIdRegExp = /\bvcssom-id-\S+/;
+const VCSSOM_PREFIX = "vcssom-id-";
 
 var counter = 0;
 
@@ -31,6 +30,7 @@ export default class StyleSheetManager {
     let rule = element.__vcssomRule__;
     if (rule) {
       clearRule(rule);
+      ensureElementHasClass(element, rule);
       return rule;
     } else {
       return this.insertRuleFor(element);
@@ -40,7 +40,7 @@ export default class StyleSheetManager {
   insertRuleFor(element) {
     counter++;
 
-    let id = vcssomIdPrefix + counter;
+    let id = VCSSOM_PREFIX + counter;
     let index = this.sheet.insertRule(`.${id}{}`);
     let rule = this.sheet.cssRules[index];
 
@@ -61,6 +61,14 @@ function clearRule(rule) {
 
   for (let i = style.length - 1; i >= 0; i--) {
     style.removeProperty(style[i]);
+  }
+}
+
+function ensureElementHasClass(element, rule) {
+  let id = rule.selectorText.slice(1);
+
+  if (element.className.indexOf(id) === -1) {
+    element.className += ' ' + id;
   }
 }
 

@@ -39,12 +39,24 @@
   color: var(--rule-merging-bar);
 }
 
-.class-attribute-mutation .foo {
-  --class-attribute-mutation-color: rgb(255, 0, 0);
+.class-attribute-mutation-updates-children .foo {
+  --class-attribute-mutation-updates-children-color: rgb(255, 0, 0);
 }
-.class-attribute-mutation .bar {
-  --class-attribute-mutation-color: rgb(0, 255, 0);
+.class-attribute-mutation-updates-children .bar {
+  --class-attribute-mutation-updates-children-color: rgb(0, 255, 0);
 }
-.class-attribute-mutation .item {
-  color: var(--class-attribute-mutation-color);
+.class-attribute-mutation-updates-children .item {
+  color: var(--class-attribute-mutation-updates-children-color);
+}
+
+.class-attribute-replaced {
+  --class-attribute-replaced-foo: rgb(255, 0, 0);
+  --class-attribute-replaced-bar: rgb(0, 255, 0);
+}
+.class-attribute-replaced .foo {
+  color: var(--class-attribute-replaced-foo);
+  background-color: rgb(0, 0, 0);
+}
+.class-attribute-replaced .bar {
+  background-color: var(--class-attribute-replaced-bar);
 }

@@ -88,7 +88,7 @@ test('rule merging', function(assert) {
   });
 });
 
-test('basic attribute mutation', function(assert) {
+test('class attribute mutation updates children', function(assert) {
   setContent(`
     <span id="subject-1" class="foo">
       <span id="subject-2" class="item"></span>
@@ -103,6 +103,34 @@ test('basic attribute mutation', function(assert) {
   vcssom.forceUpdate();
 
   assert.equalStyle(getSubject(2), { "color": GREEN });
+});
+
+test('class attribute replaced', function(assert) {
+  setContent(`<span id="subject" class="foo"></span>`);
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "background-color": BLACK,
+    "color": RED
+  });
+
+  // Completely replace the class (removing the vcssom id class)
+  getSubject().className = "bar";
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "background-color": GREEN,
+    "color": BLACK
+  });
+
+  // Swap the class (leaving the vcssom id class in place)
+  getSubject().className = getSubject().className.replace("bar", "foo");
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "background-color": BLACK,
+    "color": RED
+  });
 });
 
 function getSubject(id) {
