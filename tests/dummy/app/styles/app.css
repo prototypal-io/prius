@@ -13,28 +13,28 @@
 }
 
 .complex-shadowing-test-one {
-  --foo: 40px;
+  --complex-shadowing-foo: 40px;
 }
 .complex-shadowing-test-two {
-  --bar: var(--foo);
+  --complex-shadowing-bar: var(--complex-shadowing-foo);
 }
 .complex-shadowing-test-three {
-  --foo: calc(var(--bar) + 5px);
+  --complex-shadowing-foo: calc(var(--complex-shadowing-bar) + 5px);
 }
 .complex-shadowing-test-foo {
-  font-size: var(--foo);
+  font-size: var(--complex-shadowing-foo);
 }
 .complex-shadowing-test-bar {
-  font-size: var(--bar);
+  font-size: var(--complex-shadowing-bar);
 }
 
 .rule-merge-test {
-  --foo: rgb(255, 0, 0);
+  --rule-merge-foo: rgb(255, 0, 0);
 }
 .rule-merge-test {
-  --bar: rgb(0, 255, 0);
+  --rule-merge-bar: rgb(0, 255, 0);
 }
 .rule-merge-test-item {
-  background-color: var(--foo);
-  color: var(--bar);
+  background-color: var(--rule-merge-foo);
+  color: var(--rule-merge-bar);
 }

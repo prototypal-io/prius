@@ -1,47 +1,49 @@
-import { updateTree, updateNode, updateDescendants } from './dom';
+import StyleSheetManager from './style-sheet-manager';
+import { updateTree } from './dom';
 
-export {
-  updateTree,
-  updateNode,
-  updateDescendants
+const mutationObserverOptions = {
+  attributes: true,
+  childList: true,
+  subtree: true
 };
 
 export default class VCSSOM {
   constructor(meta) {
-    this.meta = meta;
-
-    this.mutationObserver = new MutationObserver(records => {
-      this.update(records);
+    this.styleSheetManager = new StyleSheetManager(meta);
+    this.mutationObserver = new window.MutationObserver(records => {
+      processMutationRecords(this, records);
     });
   }
 
   observe(node=document.body) {
-    this.mutationObserver.observe(node, {
-      attributes: true,
-      childList: true,
-      subtree: true
-    });
+    this.styleSheetManager.connect();
+    this.mutationObserver.observe(node, mutationObserverOptions);
   }
 
   disconnect() {
     this.mutationObserver.disconnect();
+    this.styleSheetManager.disconnect();
   }
 
   forceUpdate() {
-    this.update(this.mutationObserver.takeRecords());
+    let records = this.mutationObserver.takeRecords();
+    processMutationRecords(this, records);
   }
 
-  update(records) {
-    for (let i = 0; i < records.length; i++) {
-      let record = records[i];
-      if (record.type === 'childList') {
-        let addedNodes = record.addedNodes;
-        for (let i = 0; i < addedNodes.length; i++) {
-          updateTree(this.meta, addedNodes[i]);
-        }
-      } else if (record.attributeName === 'class') {
-        updateTree(this.meta, record.target);
-      }
-    }
+  updateTree(element) {
+    updateTree(this.styleSheetManager, element);
   }
+}
+
+function processMutationRecords(vcssom, records) {
+  records.forEach(record => {
+    if (record.type === 'childList') {
+      let addedNodes = record.addedNodes;
+      for (let i = 0; i < addedNodes.length; i++) {
+        vcssom.updateTree(addedNodes[i]);
+      }
+    } else if (record.attributeName === 'class') {
+      vcssom.updateTree(record.target);
+    }
+  });
 }
