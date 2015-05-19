@@ -1,5 +1,5 @@
 import StyleSheetManager from './style-sheet-manager';
-import { updateTree } from './dom';
+import { updateTree, removeTree } from './dom';
 
 const mutationObserverOptions = {
   attributes: true,
@@ -33,14 +33,24 @@ export default class VCSSOM {
   updateTree(element) {
     updateTree(this.styleSheetManager, element);
   }
+
+  removeTree(element) {
+    removeTree(this.styleSheetManager, element);
+  }
 }
 
 function processMutationRecords(vcssom, records) {
   records.forEach(record => {
     if (record.type === 'childList') {
       let addedNodes = record.addedNodes;
+      let removedNodes = record.removedNodes;
+
       for (let i = 0; i < addedNodes.length; i++) {
         vcssom.updateTree(addedNodes[i]);
+      }
+
+      for (let i = 0; i < removedNodes.length; i++) {
+        vcssom.removeTree(removedNodes[i]);
       }
     } else if (record.attributeName === 'class') {
       vcssom.updateTree(record.target);

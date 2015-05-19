@@ -60,3 +60,10 @@
 .class-attribute-replaced .bar {
   background-color: var(--class-attribute-replaced-bar);
 }
+
+.removing-an-element-clears-its-rule {
+  --removing-an-element-clears-its-rule-size: 40px;
+}
+.removing-an-element-clears-its-rule .foo {
+  font-size: var(--removing-an-element-clears-its-rule-size);
+}

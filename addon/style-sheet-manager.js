@@ -18,6 +18,10 @@ export default class StyleSheetManager {
   }
 
   disconnect() {
+    var rules = this.sheet.cssRules;
+    for (var i = rules.length - 1; i >= 0; i--) {
+      this.sheet.deleteRule(i);
+    }
     this.sheet = null;
 
     let styleElement = this.styleElement;
@@ -41,7 +45,7 @@ export default class StyleSheetManager {
     counter++;
 
     let id = VCSSOM_PREFIX + counter;
-    let index = this.sheet.insertRule(`.${id}{}`);
+    let index = this.sheet.insertRule(`.${id}{}`, 0);
     let rule = this.sheet.cssRules[index];
 
     element.className += ' ' + id;
@@ -50,10 +54,17 @@ export default class StyleSheetManager {
     return rule;
   }
 
-  // deleteRuleFor(id) {
-  //   let index = findRuleIndex(this.sheet, id);
-  //   this.sheet.deleteRule(index);
-  // }
+  deleteRuleFor(element) {
+    if (element.__vcssomRule__) {
+      let selector = element.__vcssomRule__.selectorText;
+      element.__vcssomRule__ = null;
+
+      let index = findRuleIndex(this.sheet.cssRules, selector);
+      if (index !== -1) {
+        this.sheet.deleteRule(index);
+      }
+    }
+  }
 }
 
 function clearRule(rule) {
@@ -72,13 +83,12 @@ function ensureElementHasClass(element, rule) {
   }
 }
 
-// function findRuleIndex(styleSheet, id) {
-//   let rules = styleSheet.cssRules;
-//   let selector = '.' + id;
+function findRuleIndex(rules, selector) {
+  for (let i = 0; i < rules.length; i++) {
+    if (rules[i].selectorText === selector) {
+      return i;
+    }
+  }
 
-//   for (let i = 0; i < rules.length; i++) {
-//     if (rules[i].selectorText === selector) {
-//       return i;
-//     }
-//   }
-// }
+  return -1;
+}

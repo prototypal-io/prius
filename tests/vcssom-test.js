@@ -22,8 +22,9 @@ module('vcssom', {
   },
 
   afterEach() {
-    appElement.className = "";
     Ember.run(application, 'destroy');
+    appElement.className = "";
+    appElement.innerHTML = "";
   }
 });
 
@@ -131,6 +132,22 @@ test('class attribute replaced', function(assert) {
     "background-color": BLACK,
     "color": RED
   });
+});
+
+test('removing an element clears its rule', function(assert) {
+  setContent(`
+    <span class="foo" id="subject">
+      <span class="foo"></span>
+    </span>
+  `);
+  vcssom.forceUpdate();
+
+  assert.equal(vcssom.vcssom.styleSheetManager.sheet.cssRules.length, 2);
+
+  getSubject().parentNode.removeChild(getSubject());
+  vcssom.forceUpdate();
+
+  assert.equal(vcssom.vcssom.styleSheetManager.sheet.cssRules.length, 0);
 });
 
 function getSubject(id) {

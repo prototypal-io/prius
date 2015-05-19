@@ -94,3 +94,17 @@ function closestWithCustomProperty(meta, element, customProperty) {
     return { ancestor: null, selector: ':root' };
   }
 }
+
+export function removeTree(manager, element) {
+  if (element.nodeType !== 1) {
+    return;
+  }
+
+  manager.deleteRuleFor(element);
+
+  let childNodes = element.childNodes;
+
+  for (let i = 0; i < childNodes.length; i++) {
+    removeTree(manager, childNodes[i]);
+  }
+}
