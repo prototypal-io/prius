@@ -61,6 +61,16 @@
   background-color: var(--class-attribute-replaced-bar);
 }
 
+.multiple-classes {
+  --multiple-classes-color: rgb(0, 255, 0);
+}
+.multiple-classes .foo {
+  background-color: var(--multiple-classes-color);
+}
+.multiple-classes .bar {
+  color: var(--main-color);
+}
+
 .removing-an-element-clears-its-rule {
   --removing-an-element-clears-its-rule-size: 40px;
 }

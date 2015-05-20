@@ -3,6 +3,7 @@ export function updateTree(manager, element) {
     return;
   }
 
+  manager.incrementVersion();
   updateNode(manager, element);
   updateDescendants(manager, element);
 }
@@ -40,7 +41,7 @@ function updateDynamicProperties(manager, element, dynamicDeclarations) {
     if (!CUSTOM_PROPERTY_REGEXP.test(property)) {
       let value = evaluateExpression(manager.meta, element, expression);
 
-      style = style || manager.getFreshRuleFor(element).style;
+      style = style || manager.getStyleFor(element);
       style.setProperty(property, value);
     }
   }

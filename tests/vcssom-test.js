@@ -11,6 +11,10 @@ function setContent(html) {
   appElement.innerHTML = html;
 }
 
+function getContainer() {
+  return document.getElementById('ember-testing-container');
+}
+
 module('vcssom', {
   beforeEach(assert) {
     application = startApp();
@@ -18,13 +22,16 @@ module('vcssom', {
     vcssom = container.lookup('service:vcssom');
 
     appElement = document.querySelector(application.rootElement);
-    appElement.className = Ember.String.dasherize(assert.test.testName);
+
+    getContainer().className = Ember.String.dasherize(assert.test.testName);
   },
 
   afterEach() {
     Ember.run(application, 'destroy');
-    appElement.className = "";
+
     appElement.innerHTML = "";
+
+    getContainer().className = "";
   }
 });
 
@@ -130,6 +137,32 @@ test('class attribute replaced', function(assert) {
 
   assert.equalStyle(getSubject(), {
     "background-color": BLACK,
+    "color": RED
+  });
+});
+
+test('multiple classes', function(assert) {
+  setContent(`<span class="foo bar" id="subject"></span>`);
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "background-color": GREEN,
+    "color": RED
+  });
+
+  getSubject().className = "foo";
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "background-color": GREEN,
+    "color": BLACK
+  });
+
+  getSubject().className = "bar foo";
+  vcssom.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "background-color": GREEN,
     "color": RED
   });
 });

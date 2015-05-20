@@ -1,6 +1,7 @@
-const VCSSOM_PREFIX = "vcssom-id-";
+export const idPrefix = "vcssom-id-";
+export const metaSymbol = window.Symbol ? Symbol('vcssom') : '__vcssom__';
 
-var counter = 0;
+var globalIdCounter = 0;
 
 export default class StyleSheetManager {
   constructor(meta) {
@@ -10,6 +11,7 @@ export default class StyleSheetManager {
     this.meta = meta;
     this.styleElement = styleElement;
     this.sheet = null;
+    this.version = 0;
   }
 
   connect(node=document.head) {
@@ -30,34 +32,29 @@ export default class StyleSheetManager {
     }
   }
 
-  getFreshRuleFor(element) {
-    let rule = element.__vcssomRule__;
-    if (rule) {
-      clearRule(rule);
-      ensureElementHasClass(element, rule);
-      return rule;
+  incrementVersion() {
+    this.version++;
+  }
+
+  getStyleFor(element) {
+    let meta = element[metaSymbol];
+    if (meta) {
+      if (meta.version < this.version) {
+        clearRule(meta.rule);
+        ensureElementHasClass(element, meta.rule);
+        meta.version = this.version;
+      }
+
+      return meta.rule.style;
     } else {
-      return this.insertRuleFor(element);
+      return insertRuleFor(this, element).style;
     }
   }
 
-  insertRuleFor(element) {
-    counter++;
-
-    let id = VCSSOM_PREFIX + counter;
-    let index = this.sheet.insertRule(`.${id}{}`, 0);
-    let rule = this.sheet.cssRules[index];
-
-    element.className += ' ' + id;
-    element.__vcssomRule__ = rule;
-
-    return rule;
-  }
-
   deleteRuleFor(element) {
-    if (element.__vcssomRule__) {
-      let selector = element.__vcssomRule__.selectorText;
-      element.__vcssomRule__ = null;
+    if (element[metaSymbol]) {
+      let selector = element[metaSymbol].rule.selectorText;
+      element[metaSymbol] = null;
 
       let index = findRuleIndex(this.sheet.cssRules, selector);
       if (index !== -1) {
@@ -91,4 +88,25 @@ function findRuleIndex(rules, selector) {
   }
 
   return -1;
+}
+
+function insertRuleFor(manager, element) {
+  globalIdCounter++;
+
+  let id = idPrefix + globalIdCounter;
+  let index = manager.sheet.insertRule(`.${id}{}`, 0);
+  let rule = manager.sheet.cssRules[index];
+  let version = manager.version;
+
+  element.className += ' ' + id;
+  element[metaSymbol] = new Meta(rule, version);
+
+  return rule;
+}
+
+class Meta {
+  constructor(rule, version) {
+    this.rule = rule;
+    this.version = version;
+  }
 }
