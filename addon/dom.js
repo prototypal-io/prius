@@ -1,43 +1,48 @@
-export function updateTree(meta, element) {
-  updateNode(meta, element);
-  updateDescendants(meta, element);
+export function updateTree(manager, element) {
+  if (element.nodeType !== 1) {
+    return;
+  }
+
+  manager.incrementVersion();
+  updateNode(manager, element);
+  updateDescendants(manager, element);
 }
 
-export function updateNode(meta, element) {
-  if (element.nodeType !== 1) { return; }
-
-  let { dynamicSelectors } = meta;
+function updateNode(manager, element) {
+  let dynamicSelectors = manager.meta.dynamicSelectors;
 
   for (let selector in dynamicSelectors) {
     if (element.matches(selector)) {
-      updateDynamicProperties(meta, element, dynamicSelectors[selector]);
+      updateDynamicProperties(manager, element, dynamicSelectors[selector]);
     }
   }
 }
 
-export function updateDescendants(meta, element) {
-  if (element.nodeType !== 1) { return; }
-
-  let { dynamicSelectors } = meta;
+function updateDescendants(manager, element) {
+  let dynamicSelectors = manager.meta.dynamicSelectors;
 
   for (let selector in dynamicSelectors) {
     let dynamicDescendants = element.querySelectorAll(selector);
 
     for (let i = 0; i < dynamicDescendants.length; i++) {
-      updateDynamicProperties(meta, dynamicDescendants[i], dynamicSelectors[selector]);
+      updateDynamicProperties(manager, dynamicDescendants[i], dynamicSelectors[selector]);
     }
   }
 }
 
 const CUSTOM_PROPERTY_REGEXP = /^--/;
 
-function updateDynamicProperties(meta, element, dynamicDeclarations) {
+function updateDynamicProperties(manager, element, dynamicDeclarations) {
+  let style = null;
+
   for (let property in dynamicDeclarations) {
     let expression = dynamicDeclarations[property];
 
     if (!CUSTOM_PROPERTY_REGEXP.test(property)) {
-      let value = evaluateExpression(meta, element, expression);
-      element.style.setProperty(property, value);
+      let value = evaluateExpression(manager.meta, element, expression);
+
+      style = style || manager.getStyleFor(element);
+      style.setProperty(property, value);
     }
   }
 }
@@ -88,5 +93,19 @@ function closestWithCustomProperty(meta, element, customProperty) {
     }
 
     return { ancestor: null, selector: ':root' };
+  }
+}
+
+export function removeTree(manager, element) {
+  if (element.nodeType !== 1) {
+    return;
+  }
+
+  manager.deleteRuleFor(element);
+
+  let childNodes = element.childNodes;
+
+  for (let i = 0; i < childNodes.length; i++) {
+    removeTree(manager, childNodes[i]);
   }
 }
