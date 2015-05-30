@@ -1,16 +1,16 @@
 export function initialize(container, application) {
-  const metaElement = document.querySelector("meta[name='vcssom']");
+  const metaElement = document.querySelector("meta[name='prius']");
 
   if (metaElement && metaElement.content) {
     const meta = JSON.parse(decodeURI(metaElement.content));
     const appElement = document.querySelector(application.rootElement);
 
-    const vcssom = container.lookup('service:vcssom');
-    vcssom.setup(meta, appElement);
+    const prius = container.lookup('service:prius');
+    prius.setup(meta, appElement);
   }
 }
 
 export default {
-  name: 'vcssom',
+  name: 'prius',
   initialize: initialize
 };

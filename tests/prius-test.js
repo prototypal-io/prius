@@ -2,7 +2,7 @@ import Ember from 'ember';
 import QUnit, { module, test } from 'qunit';
 import startApp from './helpers/start-app';
 
-var application, container, vcssom;
+var application, container, prius;
 var appElement;
 
 injectEqualStyleAssertion();
@@ -15,11 +15,11 @@ function getContainer() {
   return document.getElementById('ember-testing-container');
 }
 
-module('vcssom', {
+module('prius', {
   beforeEach(assert) {
     application = startApp();
     container = application.__container__;
-    vcssom = container.lookup('service:vcssom');
+    prius = container.lookup('service:prius');
 
     appElement = document.querySelector(application.rootElement);
 
@@ -41,7 +41,7 @@ const BLACK = `rgb(0, 0, 0)`;
 
 test('basic styling', function(assert) {
   setContent(`<span id="subject" class="item">Hello</span>`);
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": BLACK,
@@ -51,7 +51,7 @@ test('basic styling', function(assert) {
 
 test('default value', function(assert) {
   setContent(`<span id="subject" class="item">Hello</span>`);
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": BLACK,
@@ -74,7 +74,7 @@ test('complex shadowing', function(assert) {
     </span>
   `);
 
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(1), { "font-size": '40px' });
   assert.equalStyle(getSubject(2), { "font-size": '40px' });
@@ -88,7 +88,7 @@ test('rule merging', function(assert) {
     <span id="subject" class="item"></span>
   `);
 
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": RED,
@@ -103,37 +103,37 @@ test('class attribute mutation updates children', function(assert) {
     </span>
   `);
 
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(2), { "color": RED });
 
   getSubject(1).className = "bar";
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(2), { "color": GREEN });
 });
 
 test('class attribute replaced', function(assert) {
   setContent(`<span id="subject" class="foo"></span>`);
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": BLACK,
     "color": RED
   });
 
-  // Completely replace the class (removing the vcssom id class)
+  // Completely replace the class (removing the prius id class)
   getSubject().className = "bar";
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": GREEN,
     "color": BLACK
   });
 
-  // Swap the class (leaving the vcssom id class in place)
+  // Swap the class (leaving the prius id class in place)
   getSubject().className = getSubject().className.replace("bar", "foo");
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": BLACK,
@@ -143,7 +143,7 @@ test('class attribute replaced', function(assert) {
 
 test('multiple classes', function(assert) {
   setContent(`<span class="foo bar" id="subject"></span>`);
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": GREEN,
@@ -151,7 +151,7 @@ test('multiple classes', function(assert) {
   });
 
   getSubject().className = "foo";
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": GREEN,
@@ -159,7 +159,7 @@ test('multiple classes', function(assert) {
   });
 
   getSubject().className = "bar foo";
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
     "background-color": GREEN,
@@ -173,14 +173,14 @@ test('removing an element clears its rule', function(assert) {
       <span class="foo"></span>
     </span>
   `);
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
-  assert.equal(vcssom.vcssom.styleSheetManager.sheet.cssRules.length, 2);
+  assert.equal(prius.prius.styleSheetManager.sheet.cssRules.length, 2);
 
   getSubject().parentNode.removeChild(getSubject());
-  vcssom.forceUpdate();
+  prius.forceUpdate();
 
-  assert.equal(vcssom.vcssom.styleSheetManager.sheet.cssRules.length, 0);
+  assert.equal(prius.prius.styleSheetManager.sheet.cssRules.length, 0);
 });
 
 function getSubject(id) {

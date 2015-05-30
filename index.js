@@ -4,7 +4,7 @@
 var injectMeta = require('./lib/inject');
 
 module.exports = {
-  name: 'vcssom',
+  name: 'prius',
 
   postprocessTree: function(type, tree) {
     if (type === 'all') {

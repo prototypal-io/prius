@@ -1,12 +1,12 @@
-export const idPrefix = "vcssom-id-";
-export const metaSymbol = window.Symbol ? Symbol('vcssom') : '__vcssom__';
+export const idPrefix = "prius-id-";
+export const metaSymbol = window.Symbol ? Symbol('prius') : '__prius__';
 
 var globalIdCounter = 0;
 
 export default class StyleSheetManager {
   constructor(meta) {
     let styleElement = document.createElement('style');
-    styleElement.title = "vcssom";
+    styleElement.title = "prius";
 
     this.meta = meta;
     this.styleElement = styleElement;
