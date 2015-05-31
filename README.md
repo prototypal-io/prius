@@ -1,25 +1,46 @@
+
 # Prius
 
-This README outlines the details of collaborating on this Ember addon.
+Prius enables you to write next generation CSS in your apps today. It operates via a hybrid runtime and preprocessor. It's usable with your 
+
+Prius is currently intended for usage inside Ember CLI applications, however it was built to be used with any JS framework.
 
 ## Installation
 
-* `git clone` this repository
-* `npm install`
-* `bower install`
+`ember install prius`
 
-## Running
+TODO: instructions for general usage.
 
-* `ember server`
-* Visit your app at http://localhost:4200.
+## Features
 
-## Running Tests
+### CSS custom properties and `var`
 
-* `ember test`
-* `ember test --server`
+#### Example usage
 
-## Building
+```
+.button {
+  font-size: var(--fontSize, 1em);
+}
 
-* `ember build`
+.button-large {
+  --fontSize: 2em;
+}
+```
 
-For more information on using ember-cli, visit [http://www.ember-cli.com/](http://www.ember-cli.com/).
+## Planned features
+
+### Mixins
+
+#### Example usage
+
+```
+:root {
+  --myMixin: {
+    padding: 0.5em;
+  }
+}
+
+.button {
+  @apply(--myMixin)
+}
+```
