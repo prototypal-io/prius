@@ -20,11 +20,13 @@ export default class StyleSheetManager {
   }
 
   disconnect() {
-    var rules = this.sheet.cssRules;
-    for (var i = rules.length - 1; i >= 0; i--) {
-      this.sheet.deleteRule(i);
+    if (this.sheet) {
+      var rules = this.sheet.cssRules;
+      for (var i = rules.length - 1; i >= 0; i--) {
+        this.sheet.deleteRule(i);
+      }
+      this.sheet = null;
     }
-    this.sheet = null;
 
     let styleElement = this.styleElement;
     if (styleElement.parentNode) {

@@ -1,45 +1,42 @@
-import Ember from 'ember';
 import QUnit, { module, test } from 'qunit';
-import startApp from './helpers/start-app';
-
-var application, container, prius;
-var appElement;
+import Prius from 'prius';
+import m from 'prius-precompile-meta';
 
 injectEqualStyleAssertion();
-
-function setContent(html) {
-  appElement.innerHTML = html;
-}
-
-function getContainer() {
-  return document.getElementById('ember-testing-container');
-}
-
-module('prius', {
-  beforeEach(assert) {
-    application = startApp();
-    container = application.__container__;
-    prius = container.lookup('service:prius');
-
-    appElement = document.querySelector(application.rootElement);
-
-    getContainer().className = Ember.String.dasherize(assert.test.testName);
-  },
-
-  afterEach() {
-    Ember.run(application, 'destroy');
-
-    appElement.innerHTML = "";
-
-    getContainer().className = "";
-  }
-});
 
 const RED = `rgb(255, 0, 0)`;
 const GREEN = `rgb(0, 255, 0)`;
 const BLACK = `rgb(0, 0, 0)`;
 
+let prius;
+
+module('prius', {
+  beforeEach() {
+    let content = document.createElement('div');
+    content.id = "prius-test-content";
+
+    let fixture = document.getElementById('qunit-fixture');
+    fixture.appendChild(content);
+  },
+  afterEach() {
+    if (prius) {
+      prius.disconnect();
+    }
+  }
+});
+
 test('basic styling', function(assert) {
+  initPrius(m`
+    :root {
+      --main-color: rgb(255, 0, 0);
+    }
+
+    .item {
+      background-color: rgb(0, 0, 0);
+      color: var(--main-color);
+    }
+  `);
+
   setContent(`<span id="subject" class="item">Hello</span>`);
   prius.forceUpdate();
 
@@ -50,6 +47,13 @@ test('basic styling', function(assert) {
 });
 
 test('default value', function(assert) {
+  initPrius(m`
+    .item {
+      background-color: rgb(0, 0, 0);
+      color: var(--secondary-color, rgb(0, 255, 0));
+    }
+  `);
+
   setContent(`<span id="subject" class="item">Hello</span>`);
   prius.forceUpdate();
 
@@ -60,6 +64,24 @@ test('default value', function(assert) {
 });
 
 test('complex shadowing', function(assert) {
+  initPrius(m`
+    .one {
+      --foo: 40px;
+    }
+    .two {
+      --bar: var(--foo);
+    }
+    .three {
+      --foo: calc(var(--bar) + 5px);
+    }
+    .foo {
+      font-size: var(--foo);
+    }
+    .bar {
+      font-size: var(--bar);
+    }
+  `);
+
   setContent(`
     <span class="one">
       <span class="foo" id="subject-1"></span>
@@ -73,7 +95,6 @@ test('complex shadowing', function(assert) {
       </span>
     </span>
   `);
-
   prius.forceUpdate();
 
   assert.equalStyle(getSubject(1), { "font-size": '40px' });
@@ -84,10 +105,22 @@ test('complex shadowing', function(assert) {
 });
 
 test('rule merging', function(assert) {
+  initPrius(m`
+    :root {
+      --foo: rgb(255, 0, 0);
+    }
+    :root {
+      --bar: rgb(0, 255, 0);
+    }
+    .item {
+      background-color: var(--foo);
+      color: var(--bar);
+    }
+  `);
+
   setContent(`
     <span id="subject" class="item"></span>
   `);
-
   prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
@@ -97,12 +130,23 @@ test('rule merging', function(assert) {
 });
 
 test('class attribute mutation updates children', function(assert) {
+  initPrius(m`
+    .foo {
+      --color: rgb(255, 0, 0);
+    }
+    .bar {
+      --color: rgb(0, 255, 0);
+    }
+    .item {
+      color: var(--color);
+    }
+  `);
+
   setContent(`
     <span id="subject-1" class="foo">
       <span id="subject-2" class="item"></span>
     </span>
   `);
-
   prius.forceUpdate();
 
   assert.equalStyle(getSubject(2), { "color": RED });
@@ -114,6 +158,20 @@ test('class attribute mutation updates children', function(assert) {
 });
 
 test('class attribute replaced', function(assert) {
+  initPrius(m`
+    :root {
+      --foo: rgb(255, 0, 0);
+      --bar: rgb(0, 255, 0);
+    }
+    .foo {
+      color: var(--foo);
+      background-color: rgb(0, 0, 0);
+    }
+    .bar {
+      background-color: var(--bar);
+    }
+  `);
+
   setContent(`<span id="subject" class="foo"></span>`);
   prius.forceUpdate();
 
@@ -142,6 +200,19 @@ test('class attribute replaced', function(assert) {
 });
 
 test('multiple classes', function(assert) {
+  initPrius(m`
+    :root {
+      --background-color: rgb(0, 255, 0);
+      --color: rgb(255, 0, 0);
+    }
+    .foo {
+      background-color: var(--background-color);
+    }
+    .bar {
+      color: var(--color);
+    }
+  `);
+
   setContent(`<span class="foo bar" id="subject"></span>`);
   prius.forceUpdate();
 
@@ -168,6 +239,15 @@ test('multiple classes', function(assert) {
 });
 
 test('removing an element clears its rule', function(assert) {
+  initPrius(m`
+    :root {
+      --size: 40px;
+    }
+    .foo {
+      font-size: var(--size);
+    }
+  `);
+
   setContent(`
     <span class="foo" id="subject">
       <span class="foo"></span>
@@ -175,16 +255,32 @@ test('removing an element clears its rule', function(assert) {
   `);
   prius.forceUpdate();
 
-  assert.equal(prius.prius.styleSheetManager.sheet.cssRules.length, 2);
+  assert.equal(prius.styleSheetManager.sheet.cssRules.length, 2);
 
   getSubject().parentNode.removeChild(getSubject());
   prius.forceUpdate();
 
-  assert.equal(prius.prius.styleSheetManager.sheet.cssRules.length, 0);
+  assert.equal(prius.styleSheetManager.sheet.cssRules.length, 0);
 });
 
 function getSubject(id) {
   return document.getElementById(id ? `subject-${id}` : 'subject');
+}
+
+function setContent(html) {
+  let content = document.getElementById('prius-test-content');
+  content.innerHTML = html;
+}
+
+function initPrius(meta) {
+  let fixture = document.getElementById('qunit-fixture');
+
+  let style = document.createElement('style');
+  style.appendChild(document.createTextNode(meta.css));
+  fixture.appendChild(style);
+
+  prius = new Prius(meta.meta);
+  prius.observe(fixture);
 }
 
 function injectEqualStyleAssertion() {
