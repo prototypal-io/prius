@@ -9,6 +9,8 @@ Prius is currently intended for usage inside Ember CLI applications, however it 
 
 `ember install prius`
 
+Add `{{prius-meta}}` to the `<head>` of your `[app/index.html](https://github.com/ebryn/prius/blob/master/tests/dummy/app/index.html#L15)` & `[tests/index.html](https://github.com/ebryn/prius/blob/master/tests/index.html#L17)`
+
 TODO: instructions for general usage.
 
 ## Features
