@@ -1,8 +1,7 @@
 
 # Prius
 
-Prius enables you to write next generation CSS in your apps today. It operates via a hybrid runtime and preprocessor. It's usable with your 
-
+Prius enables you to write next generation CSS in your apps today. It operates via a hybrid runtime and preprocessor. 
 Prius is currently intended for usage inside Ember CLI applications, however it was built to be used with any JS framework.
 
 ## Installation
