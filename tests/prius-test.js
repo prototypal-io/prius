@@ -263,6 +263,17 @@ test('removing an element clears its rule', function(assert) {
   assert.equal(prius.styleSheetManager.sheet.cssRules.length, 0);
 });
 
+test('[regression] custom properties do not clobber subsequent properties', function(assert) {
+  var meta = m`
+    .item {
+      --foo: 23px;
+      bar: 29px;
+    }
+  `.meta;
+
+  assert.ok(!('bar' in meta.dynamicSelectors['.item']));
+});
+
 function getSubject(id) {
   return document.getElementById(id ? `subject-${id}` : 'subject');
 }
