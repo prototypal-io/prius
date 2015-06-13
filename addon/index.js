@@ -2,6 +2,7 @@ import StyleSheetManager from './style-sheet-manager';
 import { updateTree, removeTree } from './dom';
 
 const mutationObserverOptions = {
+  attributeFilter: ['class'],
   attributes: true,
   childList: true,
   subtree: true
@@ -52,7 +53,7 @@ function processMutationRecords(prius, records) {
       for (let i = 0; i < removedNodes.length; i++) {
         prius.removeTree(removedNodes[i]);
       }
-    } else if (record.attributeName === 'class') {
+    } else {
       prius.updateTree(record.target);
     }
   });
