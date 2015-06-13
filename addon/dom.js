@@ -66,7 +66,19 @@ function evaluateVarExpression(meta, element, { strings, vars }) {
   return value;
 }
 
+const INLINE_STYLE_VALUE_REGEXP = /^\s*:\s*([^\s;]+)/;
+
 function closestValue(meta, element, customProperty) {
+  let style = element.getAttribute('style');
+  if (style) {
+    let index = style.indexOf(customProperty);
+    if (index !== -1) {
+      let styleTail = style.slice(index + customProperty.length);
+      let value = INLINE_STYLE_VALUE_REGEXP.exec(styleTail)[1];
+      return value;
+    }
+  }
+
   let closest = closestWithCustomProperty(meta, element, customProperty);
   if (closest) {
     let expression = meta.dynamicSelectors[closest.selector][customProperty];

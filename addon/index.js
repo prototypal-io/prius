@@ -2,7 +2,7 @@ import StyleSheetManager from './style-sheet-manager';
 import { updateTree, removeTree } from './dom';
 
 const mutationObserverOptions = {
-  attributeFilter: ['class'],
+  attributeFilter: ['class', 'style'],
   attributes: true,
   childList: true,
   subtree: true

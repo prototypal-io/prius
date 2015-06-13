@@ -263,6 +263,33 @@ test('removing an element clears its rule', function(assert) {
   assert.equal(prius.styleSheetManager.sheet.cssRules.length, 0);
 });
 
+test('inline styles can contain custom property declarations', function(assert) {
+  initPrius(m`
+    :root {
+      --size: 40px;
+    }
+    .foo {
+      font-size: var(--size);
+    }
+  `);
+
+  setContent(`
+    <span id="subject" class="foo" style="--size: 50px;"></span>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "font-size": "50px"
+  });
+
+  getSubject().setAttribute("style", "--size: 45px;");
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "font-size": "45px"
+  });
+});
+
 test('[regression] custom properties do not clobber subsequent properties', function(assert) {
   var meta = m`
     .item {
