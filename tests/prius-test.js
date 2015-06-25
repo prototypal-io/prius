@@ -290,6 +290,36 @@ test('inline styles can contain custom property declarations', function(assert) 
   });
 });
 
+test('custom properties in inline styles can be applied to multiple attributes', function(assert) {
+  initPrius(m`
+    :root {
+      --size: 40px;
+    }
+    .foo {
+      font-size: var(--size);
+      line-height: var(--size);
+    }
+  `);
+
+  setContent(`
+    <span id="subject" class="foo" style="--size: 50px;"></span>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "font-size": "50px",
+    "line-height": "50px"
+  });
+
+  getSubject().setAttribute("style", "--size: 40px;");
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "font-size": "40px",
+    "line-height": "40px"
+  });
+});
+
 test('[regression] custom properties do not clobber subsequent properties', function(assert) {
   var meta = m`
     .item {
