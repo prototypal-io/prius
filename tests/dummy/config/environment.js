@@ -13,10 +13,6 @@ module.exports = function(environment) {
       }
     },
 
-    contentSecurityPolicy: {
-      'script-src': "'self' 'unsafe-inline'",
-    },
-
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
