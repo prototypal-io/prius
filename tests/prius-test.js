@@ -290,6 +290,35 @@ test('inline styles can contain custom property declarations', function(assert) 
   });
 });
 
+test('inline styles with custom property declarations inherit correctly', function(assert) {
+  initPrius(m`
+    :root {
+      --size: 40px;
+    }
+    .foo {
+      font-size: var(--size);
+    }
+  `);
+
+  setContent(`
+    <div id="subject-1" style="--size: 50px;">
+      <span id="subject-2" class="foo"></span>
+    </div>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(2), {
+    "font-size": "50px"
+  });
+
+  getSubject(1).setAttribute("style", "--size: 45px;");
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(2), {
+    "font-size": "45px"
+  });
+});
+
 test('[regression] custom properties do not clobber subsequent properties', function(assert) {
   var meta = m`
     .item {
