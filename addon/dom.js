@@ -69,42 +69,35 @@ function evaluateVarExpression(meta, element, { strings, vars }) {
 const INLINE_STYLE_VALUE_REGEXP = /^\s*:\s*([^\s;]+)/;
 
 function closestValue(meta, element, customProperty) {
-  let style = element.getAttribute('style');
-  if (style) {
-    let index = style.indexOf(customProperty);
-    if (index !== -1) {
-      let styleTail = style.slice(index + customProperty.length);
-      let value = INLINE_STYLE_VALUE_REGEXP.exec(styleTail)[1];
-      return value;
-    }
-  }
-
-  let closest = closestWithCustomProperty(meta, element, customProperty);
-  if (closest) {
-    let expression = meta.dynamicSelectors[closest.selector][customProperty];
-    return evaluateExpression(meta, closest.ancestor, expression);
-  }
-}
-
-function closestWithCustomProperty(meta, element, customProperty) {
   let selectors = meta.selectorsForCustomProperty[customProperty];
-
   if (selectors) {
+
     let ancestor = element;
 
     while (ancestor) {
+      // Check in this ancestor's inline styles.
+      let style = ancestor.getAttribute('style');
+      if (style) {
+        let index = style.indexOf(customProperty);
+        if (index !== -1) {
+          let styleTail = style.slice(index + customProperty.length);
+          return INLINE_STYLE_VALUE_REGEXP.exec(styleTail)[1];
+        }
+      }
+
+      // Check if this ancestor matches any preprocessed rule selectors.
       for (let i = 0; i < selectors.length; i++) {
         let selector = selectors[i];
-
         if (matches(ancestor, selector)) {
-          return { ancestor, selector };
+          let expression = meta.dynamicSelectors[selector][customProperty];
+          return evaluateExpression(meta, ancestor, expression);
         }
       }
 
       ancestor = ancestor.parentElement;
     }
 
-    return { ancestor: null, selector: ':root' };
+    return meta.dynamicSelectors[':root'][customProperty];
   }
 }
 
