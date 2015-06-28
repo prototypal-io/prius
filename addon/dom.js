@@ -12,7 +12,7 @@ function updateNode(manager, element) {
   let dynamicSelectors = manager.meta.dynamicSelectors;
 
   for (let selector in dynamicSelectors) {
-    if (element.matches(selector)) {
+    if (matches(element, selector)) {
       updateDynamicProperties(manager, element, dynamicSelectors[selector]);
     }
   }
@@ -22,7 +22,7 @@ function updateDescendants(manager, element) {
   let dynamicSelectors = manager.meta.dynamicSelectors;
 
   for (let selector in dynamicSelectors) {
-    let dynamicDescendants = element.querySelectorAll(selector);
+    let dynamicDescendants = querySelectorAll(element, selector);
 
     for (let i = 0; i < dynamicDescendants.length; i++) {
       updateDynamicProperties(manager, dynamicDescendants[i], dynamicSelectors[selector]);
@@ -92,16 +92,16 @@ function closestWithCustomProperty(meta, element, customProperty) {
   if (selectors) {
     let ancestor = element;
 
-    while (ancestor && ancestor.matches) {
+    while (ancestor) {
       for (let i = 0; i < selectors.length; i++) {
         let selector = selectors[i];
 
-        if (ancestor.matches(selector)) {
+        if (matches(ancestor, selector)) {
           return { ancestor, selector };
         }
       }
 
-      ancestor = ancestor.parentNode;
+      ancestor = ancestor.parentElement;
     }
 
     return { ancestor: null, selector: ':root' };
@@ -120,4 +120,12 @@ export function removeTree(manager, element) {
   for (let i = 0; i < childNodes.length; i++) {
     removeTree(manager, childNodes[i]);
   }
+}
+
+function matches(element, selector) {
+  return element.matches(selector);
+}
+
+function querySelectorAll(element, selector) {
+  return element.querySelectorAll(selector);
 }
