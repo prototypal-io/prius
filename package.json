@@ -39,7 +39,7 @@
   "dependencies": {
     "broccoli-merge-trees": "^0.2.1",
     "broccoli-writer": "^0.1.1",
-    "cascada": "0.0.1",
+    "cascada": "0.1.0",
     "ember-cli-babel": "^5.0.0",
     "mkdirp": "^0.5.1",
     "walk-sync": "^0.1.3"

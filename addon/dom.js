@@ -9,69 +9,85 @@ export function updateTree(manager, element) {
 }
 
 function updateNode(manager, element) {
-  let dynamicSelectors = manager.meta.dynamicSelectors;
-
-  for (let selector in dynamicSelectors) {
+  for (let selector in manager.meta) {
     if (matches(element, selector)) {
-      updateDynamicProperties(manager, element, dynamicSelectors[selector]);
+      updateDynamicProperties(manager, element, manager.meta[selector]);
     }
   }
 }
 
 function updateDescendants(manager, element) {
-  let dynamicSelectors = manager.meta.dynamicSelectors;
-
-  for (let selector in dynamicSelectors) {
+  for (let selector in manager.meta) {
     let dynamicDescendants = querySelectorAll(element, selector);
 
     for (let i = 0; i < dynamicDescendants.length; i++) {
-      updateDynamicProperties(manager, dynamicDescendants[i], dynamicSelectors[selector]);
+      updateDynamicProperties(manager, dynamicDescendants[i], manager.meta[selector]);
     }
   }
 }
-
-const CUSTOM_PROPERTY_REGEXP = /^--/;
 
 function updateDynamicProperties(manager, element, dynamicDeclarations) {
   let style = null;
 
   for (let property in dynamicDeclarations) {
-    let expression = dynamicDeclarations[property];
+    // TODO: Filter out custom properties at init time.
+    let isCustomProperty = property[0] === '-' && property[1] === '-';
+    if (isCustomProperty) { continue; }
 
-    if (!CUSTOM_PROPERTY_REGEXP.test(property)) {
-      let value = evaluateExpression(manager.meta, element, expression);
-
-      style = style || manager.getStyleFor(element);
-      style.setProperty(property, value);
+    if (!style) {
+      style = manager.getStyleFor(element);
     }
+
+    let value = evaluateValues(manager, element, dynamicDeclarations[property]).join('');
+    style.setProperty(property, value);
   }
 }
 
-function evaluateExpression(meta, element, expression) {
-  if (typeof expression === 'object') {
-    return evaluateVarExpression(meta, element, expression);
+function evaluateValues(manager, element, values) {
+  return values.map(function(value) {
+    return evaluateValue(manager, element, value);
+  });
+}
+
+function evaluateValue(manager, element, value) {
+  if (typeof value === 'string') {
+    return value;
+  } else if (value.type === 'Function') {
+    return evaluateFunction(manager, element, value);
+  }
+
+  throw new Error("Unknown runtime value");
+}
+
+const FUNCTIONS = {
+  var(manager, element, values) {
+    return (
+      closestCustomPropertyValue(manager, element, values[0]) ||
+      evaluateValue(manager, element, values[3])
+    );
+  },
+
+  darken(manager, element, values) {
+    return `dark${values[0]}`;
+  }
+};
+
+function evaluateFunction(manager, element, node) {
+  let args = evaluateValues(manager, element, node.args);
+  let fn = FUNCTIONS[node.name];
+  if (fn) {
+    return fn(manager, element, args);
   } else {
-    return expression;
+    // Fallback to browser implementation
+    return `${node.name}(${args.join('')})`;
   }
-}
-
-function evaluateVarExpression(meta, element, { strings, vars }) {
-  let value = strings[0];
-
-  for (let i = 0; i < vars.length; i++) {
-    let _var = vars[i];
-    value += (closestValue(meta, element, _var.name) || _var.defaultValue)+ strings[i+1];
-  }
-
-  return value;
 }
 
 const INLINE_STYLE_VALUE_REGEXP = /^\s*:\s*([^\s;]+)/;
 
-function closestValue(meta, element, customProperty) {
-  let selectors = meta.selectorsForCustomProperty[customProperty];
+function closestCustomPropertyValue(manager, element, customProperty) {
+  let selectors = manager.selectorsForCustomProperty[customProperty];
   if (selectors) {
-
     let ancestor = element;
 
     while (ancestor) {
@@ -86,18 +102,17 @@ function closestValue(meta, element, customProperty) {
       }
 
       // Check if this ancestor matches any preprocessed rule selectors.
-      for (let i = 0; i < selectors.length; i++) {
-        let selector = selectors[i];
+      for (let selector in selectors) {
         if (matches(ancestor, selector)) {
-          let expression = meta.dynamicSelectors[selector][customProperty];
-          return evaluateExpression(meta, ancestor, expression);
+          let expression = manager.meta[selector][customProperty];
+          return evaluateValues(manager, ancestor, expression).join('');
         }
       }
 
       ancestor = ancestor.parentElement;
     }
 
-    return meta.dynamicSelectors[':root'][customProperty];
+    return evaluateValues(manager, null, manager.meta[':root'][customProperty]).join('');
   }
 }
 

@@ -8,10 +8,30 @@ export default class StyleSheetManager {
     let styleElement = document.createElement('style');
     styleElement.title = "prius";
 
-    this.meta = meta;
     this.styleElement = styleElement;
     this.sheet = null;
+
     this.version = 0;
+    this.meta = null;
+    this.selectorsForCustomProperty = null;
+
+    this.setMeta(meta);
+  }
+
+  setMeta(meta) {
+    let customProps = {};
+
+    for (var selector in meta) {
+      for (var name in meta[selector]) {
+        if (name[0] === '-' && name[1] === '-') {
+          if (!customProps[name]) { customProps[name] = {}; }
+          customProps[name][selector] = true;
+        }
+      }
+    }
+
+    this.meta = meta;
+    this.selectorsForCustomProperty = customProps;
   }
 
   connect(node=document.head) {

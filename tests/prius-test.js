@@ -10,7 +10,7 @@ const BLACK = `rgb(0, 0, 0)`;
 
 let prius;
 
-module('prius', {
+module('Prius (runtime)', {
   beforeEach() {
     let content = document.createElement('div');
     content.id = "prius-test-content";
@@ -319,6 +319,33 @@ test('inline styles with custom property declarations inherit correctly', functi
   });
 });
 
+test('custom functions work correctly', function(assert) {
+  initPrius(m`
+    :root {
+      --color: blue;
+    }
+    .foo {
+      color: darken(var(--color));
+    }
+  `);
+
+  setContent(`
+    <span id="subject" class="foo"></span>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "color": "rgb(0, 0, 139)"
+  });
+
+  getSubject().setAttribute("style", "--color: red;");
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "color": "rgb(139, 0, 0)"
+  });
+});
+
 test('[regression] custom properties do not clobber subsequent properties', function(assert) {
   var meta = m`
     .item {
@@ -327,7 +354,7 @@ test('[regression] custom properties do not clobber subsequent properties', func
     }
   `.meta;
 
-  assert.ok(!('bar' in meta.dynamicSelectors['.item']));
+  assert.ok(!('bar' in meta['.item']));
 });
 
 function getSubject(id) {
