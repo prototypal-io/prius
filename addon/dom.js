@@ -29,19 +29,57 @@ function updateDescendants(manager, element) {
 function updateDynamicProperties(manager, element, dynamicDeclarations) {
   let style = null;
 
-  for (let i=0; i<dynamicDeclarations.length; i++) {
+  let queue = dynamicDeclarations.slice().reverse();
+
+  let dynamicDeclaration;
+  while (dynamicDeclaration = queue.pop()) {
     // TODO: Filter out custom properties at init time.
-    let dynamicDeclaration = dynamicDeclarations[i];
     let property = dynamicDeclaration.name;
-    let isCustomProperty = property[0] === '-' && property[1] === '-';
+
+    let isCustomProperty = dynamicDeclaration.type === 'Declaration' && property[0] === '-' && property[1] === '-';
     if (isCustomProperty) { continue; }
 
     if (!style) {
       style = manager.getStyleFor(element);
     }
 
-    let value = evaluateValues(manager, element, dynamicDeclaration.value).join('');
-    style.setProperty(property, value);
+    if (dynamicDeclaration.type === 'ApplyRule') {
+      queue.push.apply(queue, closestMixinDeclarations(manager, element, dynamicDeclaration.name));
+    } else {
+      let value = evaluateValues(manager, element, dynamicDeclaration.value).join('');
+      style.setProperty(property, value);
+    }
+  }
+}
+
+function closestMixinDeclarations(manager, element, mixinName) {
+  let selectors = manager.selectorsForMixins[mixinName];
+  if (selectors) {
+    let ancestor = element;
+
+    while (ancestor) {
+      // // Check in this ancestor's inline styles.
+      // let style = ancestor.getAttribute('style');
+      // if (style) {
+      //   let index = style.indexOf(customProperty);
+      //   if (index !== -1) {
+      //     let styleTail = style.slice(index + customProperty.length);
+      //     return INLINE_STYLE_VALUE_REGEXP.exec(styleTail)[1];
+      //   }
+      // }
+
+      // Check if this ancestor matches any preprocessed rule selectors.
+      for (let selector in selectors) {
+        if (matches(ancestor, selector)) {
+          let declaration = findDeclaration(manager.meta[selector], mixinName);
+          return declaration.value;
+        }
+      }
+
+      ancestor = ancestor.parentElement;
+    }
+
+    return findDeclaration(manager.meta[':root'], mixinName).value;
   }
 }
 

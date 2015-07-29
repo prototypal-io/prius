@@ -376,7 +376,7 @@ test('mixins work correctly', function (assert) {
   prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
-    "color": "rgb(0, 0, 139)",
+    "color": "rgb(0, 0, 255)",
     "font-weight": "bold"
   });
 });

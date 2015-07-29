@@ -19,22 +19,9 @@ export default class StyleSheetManager {
   }
 
   setMeta(meta) {
-    let customProps = {};
-
-    for (var selector in meta) {
-      let declarations = meta[selector];
-      for (let i=0; i<declarations.length; i++) {
-        let declaration = declarations[i];
-        let name = declaration.name;
-        if (name[0] === '-' && name[1] === '-') {
-          if (!customProps[name]) { customProps[name] = {}; }
-          customProps[name][selector] = true;
-        }
-      }
-    }
-
     this.meta = meta;
-    this.selectorsForCustomProperty = customProps;
+    this.selectorsForCustomProperty = getSelectorsByCustomProperty(meta);
+    this.selectorsForMixins = getSelectorsByMixin(meta);
   }
 
   connect(node=document.head) {
@@ -87,6 +74,46 @@ export default class StyleSheetManager {
       }
     }
   }
+}
+
+function getSelectorsByCustomProperty(meta) {
+  let customProps = {};
+
+  for (let selector in meta) {
+    let declarations = meta[selector];
+    for (let i=0; i<declarations.length; i++) {
+      let declaration = declarations[i];
+      if (declaration.type !== 'Declaration') {
+        continue;
+      }
+      let name = declaration.name;
+      if (name[0] === '-' && name[1] === '-') {
+        if (!customProps[name]) { customProps[name] = {}; }
+        customProps[name][selector] = true;
+      }
+    }
+  }
+
+  return customProps;
+}
+
+function getSelectorsByMixin(meta) {
+  let mixins = {};
+  for (let selector in meta) {
+    let declarations = meta[selector];
+    for (let i=0; i<declarations.length; i++) {
+      let declaration = declarations[i];
+      if (declaration.type !== 'Block') {
+        continue;
+      }
+      let name = declaration.name;
+      if (!mixins[name]) {
+        mixins[name] = {};
+      }
+      mixins[name][selector] = true;
+    }
+  }
+  return mixins;
 }
 
 function clearRule(rule) {
