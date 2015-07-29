@@ -345,64 +345,27 @@ test('custom functions work correctly', function(assert) {
     "color": "rgb(139, 0, 0)"
   });
 });
-/*
 
-{
-    ':root': {},
-    '.foo': {
-      'color': [{
-        'type': 'Function',
-        'name': 'darken',
-        'args': [{
-          type: 'Function',
-          name: 'var',
-          args: ['--color']
-        }]
-      }]
-    }
-  }
-
-  {
-      css: '\n    :root {\n      --color: blue;\n    }\n    .foo {\n      color: darken(var(--color));\n    }\n  ',
-      meta: {
-        ':root': {
-          '--color': ['blue']
-        },
-        '.foo': {
-          color: [{
-            type: 'Function',
-            name: 'darken',
-            args: [{
-              type: 'Function',
-              name: 'var',
-              args: ['--color']
-            }]
-          }]
-        }
-      }
-    }
-  */
-
-test('custom functions work correctly 1', function (assert) {
+test('mixins work correctly', function (assert) {
   initPrius({
     meta: {
       ':root': [{
-        type: 'Declaration',
-        name: '--color',
-        value: ['blue']
+        type: 'Block',
+        name: '--my-mixin',
+        value: [{
+          type: 'Declaration',
+          name: 'color',
+          value: ['blue']
+        }]
       }],
       '.foo': [{
         type: 'Declaration',
-        name: 'color',
-        value: [{
-          type: 'Function',
-          name: 'darken',
-          args: [{
-            type: 'Function',
-            name: 'var',
-            args: ['--color']
-          }]
-        }]
+        name: 'font-weight',
+        value: ['bold']
+      },
+      {
+        type: 'ApplyRule',
+        name: '--my-mixin'
       }]
     }
   });
@@ -413,14 +376,8 @@ test('custom functions work correctly 1', function (assert) {
   prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
-    "color": "rgb(0, 0, 139)"
-  });
-
-  getSubject().setAttribute("style", "--color: red;");
-  prius.forceUpdate();
-
-  assert.equalStyle(getSubject(), {
-    "color": "rgb(139, 0, 0)"
+    "color": "rgb(0, 0, 139)",
+    "font-weight": "bold"
   });
 });
 
