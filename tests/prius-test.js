@@ -381,6 +381,43 @@ test('mixins work correctly', function (assert) {
   });
 });
 
+test('mixins with custom property works correctly', function (assert) {
+  initPrius({
+    meta: {
+      ':root': [{
+        type: 'Block',
+        name: '--my-mixin',
+        value: [{
+          type: 'Declaration',
+          name: '--color',
+          value: ['blue']
+        }]
+      }],
+      '.foo': [{
+        type: 'ApplyRule',
+        name: '--my-mixin'
+      }, {
+        type: 'Declaration',
+        name: 'color',
+        value: [{
+          type: 'Function',
+          name: 'var',
+          args: ['--color']
+        }]
+      }]
+    }
+  });
+
+  setContent(`
+    <span id="subject" class="foo"></span>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "color": "rgb(0, 0, 255)"
+  });
+});
+
 test('[regression] custom properties do not clobber subsequent properties', function(assert) {
   var meta = m`
     .item {

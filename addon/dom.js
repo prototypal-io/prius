@@ -31,13 +31,17 @@ function updateDynamicProperties(manager, element, dynamicDeclarations) {
 
   let queue = dynamicDeclarations.slice().reverse();
 
+  let customPropertyValues = {};
+
   let dynamicDeclaration;
   while (dynamicDeclaration = queue.pop()) {
     // TODO: Filter out custom properties at init time.
     let property = dynamicDeclaration.name;
 
     let isCustomProperty = dynamicDeclaration.type === 'Declaration' && property[0] === '-' && property[1] === '-';
-    if (isCustomProperty) { continue; }
+    if (isCustomProperty) {
+      customPropertyValues[dynamicDeclaration.name] = evaluateValues(manager, element, dynamicDeclaration.value, customPropertyValues).join('');
+    }
 
     if (!style) {
       style = manager.getStyleFor(element);
@@ -46,7 +50,7 @@ function updateDynamicProperties(manager, element, dynamicDeclarations) {
     if (dynamicDeclaration.type === 'ApplyRule') {
       queue.push.apply(queue, closestMixinDeclarations(manager, element, dynamicDeclaration.name));
     } else {
-      let value = evaluateValues(manager, element, dynamicDeclaration.value).join('');
+      let value = evaluateValues(manager, element, dynamicDeclaration.value, customPropertyValues).join('');
       style.setProperty(property, value);
     }
   }
@@ -83,27 +87,27 @@ function closestMixinDeclarations(manager, element, mixinName) {
   }
 }
 
-function evaluateValues(manager, element, values) {
+function evaluateValues(manager, element, values, knowns) {
   return values.map(function(value) {
-    return evaluateValue(manager, element, value);
+    return evaluateValue(manager, element, value, knowns);
   });
 }
 
-function evaluateValue(manager, element, value) {
+function evaluateValue(manager, element, value, knowns) {
   if (typeof value === 'string') {
     return value;
   } else if (value.type === 'Function') {
-    return evaluateFunction(manager, element, value);
+    return evaluateFunction(manager, element, value, knowns);
   }
 
   throw new Error("Unknown runtime value");
 }
 
 const FUNCTIONS = {
-  var(manager, element, values) {
+  var(manager, element, values, knowns) {
     return (
-      closestCustomPropertyValue(manager, element, values[0]) ||
-      evaluateValue(manager, element, values[3])
+      closestCustomPropertyValue(manager, element, values[0], knowns) ||
+      evaluateValue(manager, element, values[3], knowns)
     );
   },
 
@@ -112,11 +116,11 @@ const FUNCTIONS = {
   }
 };
 
-function evaluateFunction(manager, element, node) {
-  let args = evaluateValues(manager, element, node.args);
+function evaluateFunction(manager, element, node, knowns) {
+  let args = evaluateValues(manager, element, node.args, knowns);
   let fn = FUNCTIONS[node.name];
   if (fn) {
-    return fn(manager, element, args);
+    return fn(manager, element, args, knowns);
   } else {
     // Fallback to browser implementation
     return `${node.name}(${args.join('')})`;
@@ -125,7 +129,10 @@ function evaluateFunction(manager, element, node) {
 
 const INLINE_STYLE_VALUE_REGEXP = /^\s*:\s*([^\s;]+)/;
 
-function closestCustomPropertyValue(manager, element, customProperty) {
+function closestCustomPropertyValue(manager, element, customProperty, knowns) {
+  if (knowns[customProperty] !== undefined) {
+    return knowns[customProperty];
+  }
   let selectors = manager.selectorsForCustomProperty[customProperty];
   if (selectors) {
     let ancestor = element;
@@ -145,14 +152,19 @@ function closestCustomPropertyValue(manager, element, customProperty) {
       for (let selector in selectors) {
         if (matches(ancestor, selector)) {
           let declaration = findDeclaration(manager.meta[selector], customProperty);
-          return evaluateValues(manager, ancestor, declaration.value).join('');
+          let value = evaluateValues(manager, ancestor, declaration.value, knowns).join('');
+          knowns[customProperty] = value;
+          return value;
         }
       }
 
       ancestor = ancestor.parentElement;
     }
 
-    return evaluateValues(manager, null, findDeclaration(manager.meta[':root'], customProperty).value).join('');
+    let declaration = findDeclaration(manager.meta[':root'], customProperty);
+    let value = evaluateValues(manager, ancestor, declaration.value, knowns).join('');
+    knowns[customProperty] = value;
+    return value;
   }
 }
 
