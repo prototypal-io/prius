@@ -345,6 +345,84 @@ test('custom functions work correctly', function(assert) {
     "color": "rgb(139, 0, 0)"
   });
 });
+/*
+
+{
+    ':root': {},
+    '.foo': {
+      'color': [{
+        'type': 'Function',
+        'name': 'darken',
+        'args': [{
+          type: 'Function',
+          name: 'var',
+          args: ['--color']
+        }]
+      }]
+    }
+  }
+
+  {
+      css: '\n    :root {\n      --color: blue;\n    }\n    .foo {\n      color: darken(var(--color));\n    }\n  ',
+      meta: {
+        ':root': {
+          '--color': ['blue']
+        },
+        '.foo': {
+          color: [{
+            type: 'Function',
+            name: 'darken',
+            args: [{
+              type: 'Function',
+              name: 'var',
+              args: ['--color']
+            }]
+          }]
+        }
+      }
+    }
+  */
+
+test('custom functions work correctly 1', function (assert) {
+  initPrius({
+    meta: {
+      ':root': [{
+        type: 'Declaration',
+        name: '--color',
+        value: ['blue']
+      }],
+      '.foo': [{
+        type: 'Declaration',
+        name: 'color',
+        value: [{
+          type: 'Function',
+          name: 'darken',
+          args: [{
+            type: 'Function',
+            name: 'var',
+            args: ['--color']
+          }]
+        }]
+      }]
+    }
+  });
+
+  setContent(`
+    <span id="subject" class="foo"></span>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "color": "rgb(0, 0, 139)"
+  });
+
+  getSubject().setAttribute("style", "--color: red;");
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "color": "rgb(139, 0, 0)"
+  });
+});
 
 test('[regression] custom properties do not clobber subsequent properties', function(assert) {
   var meta = m`

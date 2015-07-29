@@ -22,7 +22,10 @@ export default class StyleSheetManager {
     let customProps = {};
 
     for (var selector in meta) {
-      for (var name in meta[selector]) {
+      let declarations = meta[selector];
+      for (let i=0; i<declarations.length; i++) {
+        let declaration = declarations[i];
+        let name = declaration.name;
         if (name[0] === '-' && name[1] === '-') {
           if (!customProps[name]) { customProps[name] = {}; }
           customProps[name][selector] = true;

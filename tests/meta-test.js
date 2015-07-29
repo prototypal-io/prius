@@ -7,10 +7,12 @@ module("Prius (meta)");
 test("A custom property", function(assert) {
   let { meta } = m`.foo { --bar: baz; }`;
   assert.deepEqual(meta, {
-    ':root': {},
-    '.foo': {
-      '--bar': ['baz']
-    }
+    ':root': [],
+    '.foo': [{
+      type: 'Declaration',
+      name: '--bar',
+      value: ['baz']
+    }]
   });
 });
 
@@ -18,14 +20,16 @@ test("A var", function(assert) {
   let { meta } = m`.foo { bar: var(--baz); }`;
 
   assert.deepEqual(meta, {
-    ':root': {},
-    '.foo': {
-      'bar': [{
+    ':root': [],
+    '.foo': [{
+      type: 'Declaration',
+      name: 'bar',
+      value: [{
         type: 'Function',
         name: 'var',
         args: ['--baz']
       }]
-    }
+    }]
   });
 });
 
@@ -33,9 +37,11 @@ test("A function with variable argument", function(assert) {
   let { meta } = m`.foo { color: darken(var(--color)) }`;
 
   assert.deepEqual(meta, {
-    ':root': {},
-    '.foo': {
-      'color': [{
+    ':root': [],
+    '.foo': [{
+      type: 'Declaration',
+      name: 'color',
+      value: [{
         'type': 'Function',
         'name': 'darken',
         'args': [{
@@ -44,6 +50,6 @@ test("A function with variable argument", function(assert) {
           args: ['--color']
         }]
       }]
-    }
+    }]
   });
 });

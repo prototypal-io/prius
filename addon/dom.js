@@ -29,8 +29,10 @@ function updateDescendants(manager, element) {
 function updateDynamicProperties(manager, element, dynamicDeclarations) {
   let style = null;
 
-  for (let property in dynamicDeclarations) {
+  for (let i=0; i<dynamicDeclarations.length; i++) {
     // TODO: Filter out custom properties at init time.
+    let dynamicDeclaration = dynamicDeclarations[i];
+    let property = dynamicDeclaration.name;
     let isCustomProperty = property[0] === '-' && property[1] === '-';
     if (isCustomProperty) { continue; }
 
@@ -38,7 +40,7 @@ function updateDynamicProperties(manager, element, dynamicDeclarations) {
       style = manager.getStyleFor(element);
     }
 
-    let value = evaluateValues(manager, element, dynamicDeclarations[property]).join('');
+    let value = evaluateValues(manager, element, dynamicDeclaration.value).join('');
     style.setProperty(property, value);
   }
 }
@@ -104,15 +106,23 @@ function closestCustomPropertyValue(manager, element, customProperty) {
       // Check if this ancestor matches any preprocessed rule selectors.
       for (let selector in selectors) {
         if (matches(ancestor, selector)) {
-          let expression = manager.meta[selector][customProperty];
-          return evaluateValues(manager, ancestor, expression).join('');
+          let declaration = findDeclaration(manager.meta[selector], customProperty);
+          return evaluateValues(manager, ancestor, declaration.value).join('');
         }
       }
 
       ancestor = ancestor.parentElement;
     }
 
-    return evaluateValues(manager, null, manager.meta[':root'][customProperty]).join('');
+    return evaluateValues(manager, null, findDeclaration(manager.meta[':root'], customProperty).value).join('');
+  }
+}
+
+function findDeclaration(declarations, name) {
+  for (let i=0; i<declarations.length; i++) {
+    if (declarations[i].name === name) {
+      return declarations[i];
+    }
   }
 }
 
