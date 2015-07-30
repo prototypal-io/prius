@@ -381,7 +381,7 @@ test('mixins work correctly', function (assert) {
   });
 });
 
-test('mixins with custom property works correctly', function (assert) {
+test('mixins that define custom property works correctly', function (assert) {
   initPrius({
     meta: {
       ':root': [{
@@ -404,6 +404,45 @@ test('mixins with custom property works correctly', function (assert) {
           name: 'var',
           args: ['--color']
         }]
+      }]
+    }
+  });
+
+  setContent(`
+    <span id="subject" class="foo"></span>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "color": "rgb(0, 0, 255)"
+  });
+});
+
+
+
+test('mixins that consume a custom property works correctly', function (assert) {
+  initPrius({
+    meta: {
+      ':root': [{
+        type: 'Block',
+        name: '--my-mixin',
+        value: [{
+          type: 'Declaration',
+          name: 'color',
+          value: [{
+            type: 'Function',
+            name: 'var',
+            args: ['--color']
+          }]
+        }]
+      }],
+      '.foo': [{
+        type: 'Declaration',
+        name: '--color',
+        value: ['blue']
+      }, {
+        type: 'ApplyRule',
+        name: '--my-mixin'
       }]
     }
   });
