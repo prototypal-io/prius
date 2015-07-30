@@ -457,6 +457,36 @@ test('mixins that consume a custom property works correctly', function (assert) 
   });
 });
 
+test('references to custom props should not be evaluated until all declarations have been visited', function (assert) {
+  initPrius({
+    meta: {
+      ':root': [],
+      '.foo': [{
+        type: 'Declaration',
+        name: 'color',
+        value: [{
+          type: 'Function',
+          name: 'var',
+          args: ['--color']
+        }]
+      }, {
+        type: 'Declaration',
+        name: '--color',
+        value: ['blue']
+      }]
+    }
+  });
+
+  setContent(`
+    <span id="subject" class="foo"></span>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "color": "rgb(0, 0, 255)"
+  });
+});
+
 test('[regression] custom properties do not clobber subsequent properties', function(assert) {
   var meta = m`
     .item {

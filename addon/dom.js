@@ -27,11 +27,11 @@ function updateDescendants(manager, element) {
 }
 
 function updateDynamicProperties(manager, element, dynamicDeclarations) {
-  let style = null;
-
   let queue = dynamicDeclarations.slice().reverse();
 
-  let customPropertyValues = {};
+  let customPropertyRefs = {};
+
+  let properties = {};
 
   let dynamicDeclaration;
   while (dynamicDeclaration = queue.pop()) {
@@ -40,19 +40,22 @@ function updateDynamicProperties(manager, element, dynamicDeclarations) {
 
     let isCustomProperty = dynamicDeclaration.type === 'Declaration' && property[0] === '-' && property[1] === '-';
     if (isCustomProperty) {
-      customPropertyValues[dynamicDeclaration.name] = evaluateValues(manager, element, dynamicDeclaration.value, customPropertyValues).join('');
-    }
-
-    if (!style) {
-      style = manager.getStyleFor(element);
+      customPropertyRefs[dynamicDeclaration.name] = {
+        value: valuesToLazyConcat(manager, element, dynamicDeclaration.value, customPropertyRefs)
+      };
     }
 
     if (dynamicDeclaration.type === 'ApplyRule') {
       queue.push.apply(queue, closestMixinDeclarations(manager, element, dynamicDeclaration.name));
     } else {
-      let value = evaluateValues(manager, element, dynamicDeclaration.value, customPropertyValues).join('');
-      style.setProperty(property, value);
+      properties[property] = valuesToLazyConcat(manager, element, dynamicDeclaration.value, customPropertyRefs);
     }
+  }
+
+  let style = manager.getStyleFor(element);
+
+  for (let property in properties) {
+    style.setProperty(property, properties[property]());
   }
 }
 
@@ -87,85 +90,118 @@ function closestMixinDeclarations(manager, element, mixinName) {
   }
 }
 
-function evaluateValues(manager, element, values, knowns) {
-  return values.map(function(value) {
-    return evaluateValue(manager, element, value, knowns);
-  });
+// resolves how to produce a value and returns a function that will lazy
+// return a string of the concatenated lazy values
+function valuesToLazyConcat(manager, element, values, customPropertyRefs) {
+  var lazyArray = valuesToLazyArray(manager, element, values, customPropertyRefs);
+  return function () {
+    return lazyArray().join('');
+  };
 }
 
-function evaluateValue(manager, element, value, knowns) {
+// resolves how to produce a value and returns a function that will lazy
+// create an array of those values
+function valuesToLazyArray(manager, element, values, customPropertyRefs) {
+  let lazyValues = new Array(values.length);
+  for (let i=0; i<values.length; i++) {
+    lazyValues[i] = toLazyValue(manager, element, values[i], customPropertyRefs);
+  }
+  return function () {
+    return lazyValues.map(function (lazyValue) {
+      return lazyValue();
+    });
+  };
+}
+
+function toLazyValue(manager, element, value, customPropertyRefs) {
   if (typeof value === 'string') {
-    return value;
+    return () => value; // allow strings not to be wrapped?
   } else if (value.type === 'Function') {
-    return evaluateFunction(manager, element, value, knowns);
+    if (value.name === 'var') {
+      let customProperty = value.args[0];
+      let lazyValue = closestCustomPropertyValue(manager, element, customProperty, customPropertyRefs);
+      if (value.args.length > 1) {
+        let lazyDefault = toLazyValue(manager, element, value.args[3], customPropertyRefs);
+        return () => {
+          return lazyValue() || lazyDefault();
+        };
+      }
+      return lazyValue;
+    }
+    return toLazyFunction(manager, element, value, customPropertyRefs);
   }
 
   throw new Error("Unknown runtime value");
 }
 
 const FUNCTIONS = {
-  var(manager, element, values, knowns) {
-    return (
-      closestCustomPropertyValue(manager, element, values[0], knowns) ||
-      evaluateValue(manager, element, values[3], knowns)
-    );
-  },
-
-  darken(manager, element, values) {
-    return `dark${values[0]}`;
+  darken(value) {
+    return `dark${value}`;
   }
 };
 
-function evaluateFunction(manager, element, node, knowns) {
-  let args = evaluateValues(manager, element, node.args, knowns);
+function toLazyFunction(manager, element, node, customPropertyRefs) {
+  let args = valuesToLazyArray(manager, element, node.args, customPropertyRefs);
   let fn = FUNCTIONS[node.name];
   if (fn) {
-    return fn(manager, element, args, knowns);
-  } else {
-    // Fallback to browser implementation
-    return `${node.name}(${args.join('')})`;
+    return () => fn(...args());
   }
+
+  // Fallback to browser implementation
+  return () => `${node.name}(${args().join('')})`;
 }
 
 const INLINE_STYLE_VALUE_REGEXP = /^\s*:\s*([^\s;]+)/;
 
-function closestCustomPropertyValue(manager, element, customProperty, knowns) {
-  if (knowns[customProperty] !== undefined) {
-    return knowns[customProperty];
-  }
-  let selectors = manager.selectorsForCustomProperty[customProperty];
-  if (selectors) {
-    let ancestor = element;
+function closestCustomPropertyValue(manager, element, customProperty, customPropertyRefs) {
+  let customPropertyRef = customPropertyRefs[customProperty];
+  if (!customPropertyRef) {
+    customPropertyRefs[customProperty] = customPropertyRef = { value: undefined };
 
-    while (ancestor) {
-      // Check in this ancestor's inline styles.
-      let style = ancestor.getAttribute('style');
-      if (style) {
-        let index = style.indexOf(customProperty);
-        if (index !== -1) {
-          let styleTail = style.slice(index + customProperty.length);
-          return INLINE_STYLE_VALUE_REGEXP.exec(styleTail)[1];
+    let selectors = manager.selectorsForCustomProperty[customProperty];
+    if (selectors) {
+      let ancestor = element;
+
+      search:
+      while (ancestor) {
+        // Check in this ancestor's inline styles.
+        let style = ancestor.getAttribute('style');
+        if (style) {
+          let index = style.indexOf(customProperty);
+          if (index !== -1) {
+            let styleTail = style.slice(index + customProperty.length);
+            let staticVal = INLINE_STYLE_VALUE_REGEXP.exec(styleTail)[1];
+            customPropertyRef.value = () => staticVal;
+            break search;
+          }
         }
+
+        // Check if this ancestor matches any preprocessed rule selectors.
+        for (let selector in selectors) {
+          if (matches(ancestor, selector)) {
+            let declaration = findDeclaration(manager.meta[selector], customProperty);
+            customPropertyRef.value = valuesToLazyConcat(manager, ancestor, declaration.value, customPropertyRefs);
+            break search;
+          }
+        }
+
+        ancestor = ancestor.parentElement;
       }
 
-      // Check if this ancestor matches any preprocessed rule selectors.
-      for (let selector in selectors) {
-        if (matches(ancestor, selector)) {
-          let declaration = findDeclaration(manager.meta[selector], customProperty);
-          let value = evaluateValues(manager, ancestor, declaration.value, knowns).join('');
-          knowns[customProperty] = value;
-          return value;
+      if (customPropertyRef.value === undefined) {
+        let declaration = findDeclaration(manager.meta[':root'], customProperty);
+        if (declaration) {
+         customPropertyRef.value = valuesToLazyConcat(manager, ancestor, declaration.value, customPropertyRefs);
         }
       }
-
-      ancestor = ancestor.parentElement;
     }
-
-    let declaration = findDeclaration(manager.meta[':root'], customProperty);
-    let value = evaluateValues(manager, ancestor, declaration.value, knowns).join('');
-    knowns[customProperty] = value;
-    return value;
   }
+
+  return () => {
+    // allows custom property to be set after we create a value for it
+    var lazyValue = customPropertyRef.value;
+    return lazyValue && lazyValue();
+  };
 }
 
 function findDeclaration(declarations, name) {
