@@ -29,43 +29,85 @@ function updateDescendants(manager, element) {
 function updateDynamicProperties(manager, element, dynamicDeclarations) {
   let style = null;
 
-  for (let i=0; i<dynamicDeclarations.length; i++) {
+  let queue = dynamicDeclarations.slice().reverse();
+
+  let customPropertyValues = {};
+
+  let dynamicDeclaration;
+  while (dynamicDeclaration = queue.pop()) {
     // TODO: Filter out custom properties at init time.
-    let dynamicDeclaration = dynamicDeclarations[i];
     let property = dynamicDeclaration.name;
-    let isCustomProperty = property[0] === '-' && property[1] === '-';
-    if (isCustomProperty) { continue; }
+
+    let isCustomProperty = dynamicDeclaration.type === 'Declaration' && property[0] === '-' && property[1] === '-';
+    if (isCustomProperty) {
+      customPropertyValues[dynamicDeclaration.name] = evaluateValues(manager, element, dynamicDeclaration.value, customPropertyValues).join('');
+    }
 
     if (!style) {
       style = manager.getStyleFor(element);
     }
 
-    let value = evaluateValues(manager, element, dynamicDeclaration.value).join('');
-    style.setProperty(property, value);
+    if (dynamicDeclaration.type === 'ApplyRule') {
+      queue.push.apply(queue, closestMixinDeclarations(manager, element, dynamicDeclaration.name));
+    } else {
+      let value = evaluateValues(manager, element, dynamicDeclaration.value, customPropertyValues).join('');
+      style.setProperty(property, value);
+    }
   }
 }
 
-function evaluateValues(manager, element, values) {
+function closestMixinDeclarations(manager, element, mixinName) {
+  let selectors = manager.selectorsForMixins[mixinName];
+  if (selectors) {
+    let ancestor = element;
+
+    while (ancestor) {
+      // // Check in this ancestor's inline styles.
+      // let style = ancestor.getAttribute('style');
+      // if (style) {
+      //   let index = style.indexOf(customProperty);
+      //   if (index !== -1) {
+      //     let styleTail = style.slice(index + customProperty.length);
+      //     return INLINE_STYLE_VALUE_REGEXP.exec(styleTail)[1];
+      //   }
+      // }
+
+      // Check if this ancestor matches any preprocessed rule selectors.
+      for (let selector in selectors) {
+        if (matches(ancestor, selector)) {
+          let declaration = findDeclaration(manager.meta[selector], mixinName);
+          return declaration.value;
+        }
+      }
+
+      ancestor = ancestor.parentElement;
+    }
+
+    return findDeclaration(manager.meta[':root'], mixinName).value;
+  }
+}
+
+function evaluateValues(manager, element, values, knowns) {
   return values.map(function(value) {
-    return evaluateValue(manager, element, value);
+    return evaluateValue(manager, element, value, knowns);
   });
 }
 
-function evaluateValue(manager, element, value) {
+function evaluateValue(manager, element, value, knowns) {
   if (typeof value === 'string') {
     return value;
   } else if (value.type === 'Function') {
-    return evaluateFunction(manager, element, value);
+    return evaluateFunction(manager, element, value, knowns);
   }
 
   throw new Error("Unknown runtime value");
 }
 
 const FUNCTIONS = {
-  var(manager, element, values) {
+  var(manager, element, values, knowns) {
     return (
-      closestCustomPropertyValue(manager, element, values[0]) ||
-      evaluateValue(manager, element, values[3])
+      closestCustomPropertyValue(manager, element, values[0], knowns) ||
+      evaluateValue(manager, element, values[3], knowns)
     );
   },
 
@@ -74,11 +116,11 @@ const FUNCTIONS = {
   }
 };
 
-function evaluateFunction(manager, element, node) {
-  let args = evaluateValues(manager, element, node.args);
+function evaluateFunction(manager, element, node, knowns) {
+  let args = evaluateValues(manager, element, node.args, knowns);
   let fn = FUNCTIONS[node.name];
   if (fn) {
-    return fn(manager, element, args);
+    return fn(manager, element, args, knowns);
   } else {
     // Fallback to browser implementation
     return `${node.name}(${args.join('')})`;
@@ -87,7 +129,10 @@ function evaluateFunction(manager, element, node) {
 
 const INLINE_STYLE_VALUE_REGEXP = /^\s*:\s*([^\s;]+)/;
 
-function closestCustomPropertyValue(manager, element, customProperty) {
+function closestCustomPropertyValue(manager, element, customProperty, knowns) {
+  if (knowns[customProperty] !== undefined) {
+    return knowns[customProperty];
+  }
   let selectors = manager.selectorsForCustomProperty[customProperty];
   if (selectors) {
     let ancestor = element;
@@ -107,14 +152,19 @@ function closestCustomPropertyValue(manager, element, customProperty) {
       for (let selector in selectors) {
         if (matches(ancestor, selector)) {
           let declaration = findDeclaration(manager.meta[selector], customProperty);
-          return evaluateValues(manager, ancestor, declaration.value).join('');
+          let value = evaluateValues(manager, ancestor, declaration.value, knowns).join('');
+          knowns[customProperty] = value;
+          return value;
         }
       }
 
       ancestor = ancestor.parentElement;
     }
 
-    return evaluateValues(manager, null, findDeclaration(manager.meta[':root'], customProperty).value).join('');
+    let declaration = findDeclaration(manager.meta[':root'], customProperty);
+    let value = evaluateValues(manager, ancestor, declaration.value, knowns).join('');
+    knowns[customProperty] = value;
+    return value;
   }
 }
 

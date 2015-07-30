@@ -345,63 +345,64 @@ test('custom functions work correctly', function(assert) {
     "color": "rgb(139, 0, 0)"
   });
 });
-/*
 
-{
-    ':root': {},
-    '.foo': {
-      'color': [{
-        'type': 'Function',
-        'name': 'darken',
-        'args': [{
-          type: 'Function',
-          name: 'var',
-          args: ['--color']
-        }]
-      }]
-    }
-  }
-
-  {
-      css: '\n    :root {\n      --color: blue;\n    }\n    .foo {\n      color: darken(var(--color));\n    }\n  ',
-      meta: {
-        ':root': {
-          '--color': ['blue']
-        },
-        '.foo': {
-          color: [{
-            type: 'Function',
-            name: 'darken',
-            args: [{
-              type: 'Function',
-              name: 'var',
-              args: ['--color']
-            }]
-          }]
-        }
-      }
-    }
-  */
-
-test('custom functions work correctly 1', function (assert) {
+test('mixins work correctly', function (assert) {
   initPrius({
     meta: {
       ':root': [{
-        type: 'Declaration',
-        name: '--color',
-        value: ['blue']
+        type: 'Block',
+        name: '--my-mixin',
+        value: [{
+          type: 'Declaration',
+          name: 'color',
+          value: ['blue']
+        }]
       }],
       '.foo': [{
+        type: 'Declaration',
+        name: 'font-weight',
+        value: ['bold']
+      },
+      {
+        type: 'ApplyRule',
+        name: '--my-mixin'
+      }]
+    }
+  });
+
+  setContent(`
+    <span id="subject" class="foo"></span>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "color": "rgb(0, 0, 255)",
+    "font-weight": "bold"
+  });
+});
+
+test('mixins that define custom property works correctly', function (assert) {
+  initPrius({
+    meta: {
+      ':root': [{
+        type: 'Block',
+        name: '--my-mixin',
+        value: [{
+          type: 'Declaration',
+          name: '--color',
+          value: ['blue']
+        }]
+      }],
+      '.foo': [{
+        type: 'ApplyRule',
+        name: '--my-mixin'
+      }, {
         type: 'Declaration',
         name: 'color',
         value: [{
           type: 'Function',
-          name: 'darken',
-          args: [{
-            type: 'Function',
-            name: 'var',
-            args: ['--color']
-          }]
+          name: 'var',
+          args: ['--color']
         }]
       }]
     }
@@ -413,14 +414,46 @@ test('custom functions work correctly 1', function (assert) {
   prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
-    "color": "rgb(0, 0, 139)"
+    "color": "rgb(0, 0, 255)"
+  });
+});
+
+
+
+test('mixins that consume a custom property works correctly', function (assert) {
+  initPrius({
+    meta: {
+      ':root': [{
+        type: 'Block',
+        name: '--my-mixin',
+        value: [{
+          type: 'Declaration',
+          name: 'color',
+          value: [{
+            type: 'Function',
+            name: 'var',
+            args: ['--color']
+          }]
+        }]
+      }],
+      '.foo': [{
+        type: 'Declaration',
+        name: '--color',
+        value: ['blue']
+      }, {
+        type: 'ApplyRule',
+        name: '--my-mixin'
+      }]
+    }
   });
 
-  getSubject().setAttribute("style", "--color: red;");
+  setContent(`
+    <span id="subject" class="foo"></span>
+  `);
   prius.forceUpdate();
 
   assert.equalStyle(getSubject(), {
-    "color": "rgb(139, 0, 0)"
+    "color": "rgb(0, 0, 255)"
   });
 });
 
