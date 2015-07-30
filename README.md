@@ -24,15 +24,13 @@ TODO: instructions for general usage.
 
 ```
 .button {
-  font-size: var(--fontSize, 1em);
+  font-size: var(--font-size, 1em);
 }
 
 .button-large {
-  --fontSize: 2em;
+  --font-size: 2em;
 }
 ```
-
-## Planned features
 
 ### Mixins
 
@@ -40,12 +38,30 @@ TODO: instructions for general usage.
 
 ```
 :root {
-  --myMixin: {
+  --my-mixin: {
     padding: 0.5em;
+    --color: red;
   }
 }
 
 .button {
-  @apply(--myMixin)
+  @apply(--my-mixin);
+  background-color: var(--color);
+}
+```
+
+## Planned features
+
+### Custom functions
+
+#### Example usage
+
+```
+:root {
+  --primary-color: red;
+}
+
+.button {
+  color: darken(var(--primary-color)); /* `darken` is a custom function */
 }
 ```
