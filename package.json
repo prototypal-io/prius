@@ -1,7 +1,7 @@
 {
   "name": "prius",
-  "version": "0.0.1",
-  "description": "The default blueprint for ember-cli addons.",
+  "version": "0.0.2",
+  "description": "A hybrid CSS preprocessor/runtime",
   "directories": {
     "doc": "doc",
     "test": "tests"
@@ -11,11 +11,11 @@
     "build": "ember build",
     "test": "echo 'No tests.'"
   },
-  "repository": "",
+  "repository": "https://github.com/prototypal-io/prius",
   "engines": {
     "node": ">= 0.10.0"
   },
-  "author": "",
+  "author": "Erik Bryn, Martin Muñoz, Kris Selden",
   "license": "MIT",
   "devDependencies": {
     "broccoli-asset-rev": "^2.0.2",
