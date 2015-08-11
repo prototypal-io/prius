@@ -1,11 +1,11 @@
 import { module, test } from 'qunit';
 import Prius from 'prius';
-import m from 'prius-precompile-meta';
+import { generateMeta } from 'prius/meta';
 
 module("Prius (meta)");
 
 test("A custom property", function(assert) {
-  let { meta } = m`.foo { --bar: baz; }`;
+  let meta = generateMeta(`.foo { --bar: baz; }`);
   assert.deepEqual(meta, {
     ':root': [],
     '.foo': [{
@@ -17,7 +17,7 @@ test("A custom property", function(assert) {
 });
 
 test("A var", function(assert) {
-  let { meta } = m`.foo { bar: var(--baz); }`;
+  let meta = generateMeta(`.foo { bar: var(--baz); }`);
 
   assert.deepEqual(meta, {
     ':root': [],
@@ -34,7 +34,7 @@ test("A var", function(assert) {
 });
 
 test("A function with variable argument", function(assert) {
-  let { meta } = m`.foo { color: darken(var(--color)) }`;
+  let meta = generateMeta(`.foo { color: darken(var(--color)) }`);
 
   assert.deepEqual(meta, {
     ':root': [],
