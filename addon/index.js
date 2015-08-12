@@ -1,5 +1,5 @@
 import StyleSheetManager from './style-sheet-manager';
-import { updateTree, removeTree } from './dom';
+import { updateTree, removeTree, registerCustomFunction } from './dom';
 
 const mutationObserverOptions = {
   attributeFilter: ['class', 'style'],
@@ -14,6 +14,10 @@ export default class Prius {
     this.mutationObserver = new window.MutationObserver(records => {
       processMutationRecords(this, records);
     });
+  }
+
+  static register(name, callback) {
+    registerCustomFunction(name, callback);
   }
 
   observe(node=document.body) {

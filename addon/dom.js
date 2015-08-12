@@ -8,6 +8,10 @@ export function updateTree(manager, element) {
   updateDescendants(manager, element);
 }
 
+export function registerCustomFunction(name, callback) {
+  FUNCTIONS[name] = callback;
+}
+
 function updateNode(manager, element) {
   for (let selector in manager.meta) {
     if (matches(element, selector)) {
@@ -109,10 +113,6 @@ const FUNCTIONS = {
       closestCustomPropertyValue(manager, element, values[0], knowns) ||
       evaluateValue(manager, element, values[3], knowns)
     );
-  },
-
-  darken(manager, element, values) {
-    return `dark${values[0]}`;
   }
 };
 
