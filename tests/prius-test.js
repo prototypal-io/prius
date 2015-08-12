@@ -320,6 +320,10 @@ test('inline styles with custom property declarations inherit correctly', functi
 });
 
 test('custom functions work correctly', function(assert) {
+  Prius.register('darken', function (manager, element, values) {
+    return `dark${values[0]}`;
+  });
+  
   initPrius(`
     :root {
       --color: blue;
