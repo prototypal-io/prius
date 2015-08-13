@@ -16,7 +16,7 @@ export default class Prius {
     });
   }
 
-  static register(name, callback) {
+  static registerFunction(name, callback) {
     registerCustomFunction(name, callback);
   }
 

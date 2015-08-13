@@ -319,11 +319,11 @@ test('inline styles with custom property declarations inherit correctly', functi
   });
 });
 
-test('custom functions work correctly', function(assert) {
-  Prius.register('darken', function (manager, element, values) {
+test('basic custom functions work', function(assert) {
+  Prius.registerFunction('darken', function (values) {
     return `dark${values[0]}`;
   });
-  
+
   initPrius(`
     :root {
       --color: blue;
@@ -347,6 +347,41 @@ test('custom functions work correctly', function(assert) {
 
   assert.equalStyle(getSubject(), {
     "color": "rgb(139, 0, 0)"
+  });
+});
+
+test('custom functions work with multiple arguments', function(assert) {
+  Prius.registerFunction('multiplySumByGoldenRatio', function(values) {
+    let sum = values.reduce(function(pv, v) {
+      return parseInt(pv) + parseInt(v);
+    });
+    let goldenNumber = sum * 1.618;
+    return goldenNumber;
+  });
+
+  initPrius(`
+    :root {
+      --luckyNumber: 7;
+    }
+    .foo {
+      width: multiplySumByGoldenRatio(3, var(--luckyNumber))px;
+    }
+  `);
+
+  setContent(`
+    <div id="subject" class="foo"></div>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "width": "16.171875px"
+  });
+
+  getSubject().setAttribute("style", "--luckyNumber: 42;");
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    "width": "72.796875px"
   });
 });
 /*
