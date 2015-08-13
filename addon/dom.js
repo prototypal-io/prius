@@ -1,3 +1,5 @@
+import cascada from 'cascada';
+
 export function updateTree(manager, element) {
   if (element.nodeType !== 1) {
     return;
@@ -9,6 +11,7 @@ export function updateTree(manager, element) {
 }
 
 export function registerCustomFunction(name, callback) {
+  cascada.registerFunction(name, callback);
   FUNCTIONS[name] = callback;
 }
 
@@ -107,20 +110,22 @@ function evaluateValue(manager, element, value, knowns) {
   throw new Error("Unknown runtime value");
 }
 
-const FUNCTIONS = {
-  var(manager, element, values, knowns) {
-    return (
-      closestCustomPropertyValue(manager, element, values[0], knowns) ||
-      evaluateValue(manager, element, values[3], knowns)
-    );
-  }
-};
+function variable(manager, element, values, knowns) {
+  return (
+    closestCustomPropertyValue(manager, element, values[0], knowns) ||
+    evaluateValue(manager, element, values[3], knowns)
+  );
+}
+
+const FUNCTIONS = {};
 
 function evaluateFunction(manager, element, node, knowns) {
   let args = evaluateValues(manager, element, node.args, knowns);
   let fn = FUNCTIONS[node.name];
-  if (fn) {
-    return fn(manager, element, args, knowns);
+  if (node.name === 'var') {
+    return variable(manager, element, args, knowns);
+  } else if (fn) {
+    return fn(args);
   } else {
     // Fallback to browser implementation
     return `${node.name}(${args.join('')})`;
