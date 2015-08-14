@@ -1,5 +1,3 @@
-import cascada from 'cascada';
-
 export function updateTree(manager, element) {
   if (element.nodeType !== 1) {
     return;
@@ -11,7 +9,6 @@ export function updateTree(manager, element) {
 }
 
 export function registerCustomFunction(name, callback) {
-  cascada.registerFunction(name, callback);
   FUNCTIONS[name] = callback;
 }
 
@@ -117,7 +114,7 @@ function variable(manager, element, values, knowns) {
   );
 }
 
-const FUNCTIONS = {};
+export const FUNCTIONS = {};
 
 function evaluateFunction(manager, element, node, knowns) {
   let args = evaluateValues(manager, element, node.args, knowns);
