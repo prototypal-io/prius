@@ -320,7 +320,8 @@ test('inline styles with custom property declarations inherit correctly', functi
 });
 
 test('basic custom functions work', function(assert) {
-  Prius.registerFunction('darken', function (values) {
+  var prius = new Prius();
+  prius.registerFunction('darken', function (values) {
     return `dark${values[0]}`;
   });
 
@@ -331,7 +332,8 @@ test('basic custom functions work', function(assert) {
     .foo {
       color: darken(var(--color));
     }
-  `);
+  `, prius);
+
 
   setContent(`
     <span id="subject" class="foo"></span>
@@ -351,7 +353,8 @@ test('basic custom functions work', function(assert) {
 });
 
 test('custom functions work with multiple arguments', function(assert) {
-  Prius.registerFunction('multiplySumByGoldenRatio', function(values) {
+  var prius = new Prius();
+  prius.registerFunction('multiplySumByGoldenRatio', function(values) {
     let sum = values.reduce(function(pv, v) {
       return parseInt(pv) + parseInt(v);
     });
@@ -366,7 +369,7 @@ test('custom functions work with multiple arguments', function(assert) {
     .foo {
       width: multiplySumByGoldenRatio(3, var(--luckyNumber))px;
     }
-  `);
+  `, prius);
 
   setContent(`
     <div id="subject" class="foo"></div>
@@ -514,14 +517,15 @@ function setContent(html) {
   content.innerHTML = html;
 }
 
-function initPrius(css) {
+function initPrius(css, modifiedPrius) {
   let fixture = document.getElementById('qunit-fixture');
 
   let style = document.createElement('style');
   style.appendChild(document.createTextNode(css));
   fixture.appendChild(style);
 
-  prius = new Prius(generateMeta(css));
+  prius = modifiedPrius || new Prius();
+  prius.setup(css);
   prius.observe(fixture);
 }
 
