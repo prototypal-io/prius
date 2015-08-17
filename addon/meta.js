@@ -1,16 +1,15 @@
 import cascada from 'cascada';
-import { FUNCTIONS } from './dom';
 
-export function generateMeta(cssString) {
+export function generateMeta(cssString, customFunctions) {
   var meta = { ':root': [] };
 
-  appendMeta(meta, cssString);
+  appendMeta(meta, cssString, customFunctions);
 
   return meta;
 }
 
-function appendMeta(meta, source) {
-  var stylesheet = cascada.parse(source, { customFunctions: FUNCTIONS });
+function appendMeta(meta, source, customFunctions) {
+  var stylesheet = cascada.parse(source, { customFunctions: customFunctions });
   var rules = stylesheet.rules.filter(function(rule) {
     return rule.type === 'StyleRule';
   });
