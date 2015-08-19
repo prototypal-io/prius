@@ -3,7 +3,8 @@ import Prius from 'prius';
 
 export default Ember.Service.extend({
   setup(meta, rootElement) {
-    this.prius = new Prius(meta);
+    this.prius = new Prius();
+    this.prius.setup(meta);
     this.prius.observe(rootElement);
   },
 

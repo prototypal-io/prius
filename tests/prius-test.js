@@ -320,7 +320,7 @@ test('inline styles with custom property declarations inherit correctly', functi
 });
 
 test('basic custom functions work', function(assert) {
-  var prius = new Prius();
+  prius = new Prius();
   prius.registerFunction('darken', function (values) {
     return `dark${values[0]}`;
   });
@@ -353,7 +353,7 @@ test('basic custom functions work', function(assert) {
 });
 
 test('custom functions work with multiple arguments', function(assert) {
-  var prius = new Prius();
+  prius = new Prius();
   prius.registerFunction('multiplySumByGoldenRatio', function(values) {
     let sum = values.reduce(function(pv, v) {
       return parseInt(pv) + parseInt(v);
@@ -525,7 +525,7 @@ function initPrius(css, modifiedPrius) {
   fixture.appendChild(style);
 
   prius = modifiedPrius || new Prius();
-  prius.setup(css);
+  prius.parse(css);
   prius.observe(fixture);
 }
 

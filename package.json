@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "ember server",
+    "prepublish": "babel addon/ -d addon_cjs/",
     "build": "ember build",
     "test": "echo 'No tests.'"
   },

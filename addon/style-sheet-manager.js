@@ -1,5 +1,5 @@
 export const idPrefix = "prius-id-";
-export const metaSymbol = window.Symbol ? Symbol('prius') : '__prius__';
+export const metaSymbol = typeof window !== 'undefined' && window.Symbol ? Symbol('prius') : '__prius__';
 
 var globalIdCounter = 0;
 
