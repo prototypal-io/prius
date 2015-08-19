@@ -32,7 +32,27 @@ TODO: instructions for general usage.
 }
 ```
 
+## Planned features
+
+### Custom functions
+
+#### Example usage
+
+```
+:root {
+  --primary-color: red;
+}
+
+.button {
+  color: darken(var(--primary-color)); /* `darken` is a custom function */
+}
+```
+
+## Experimental features we're investigating
+
 ### Mixins
+
+As proposed by the Polymer team: https://www.polymer-project.org/1.0/docs/devguide/styling.html#custom-css-mixins
 
 #### Example usage
 
@@ -47,21 +67,5 @@ TODO: instructions for general usage.
 .button {
   @apply(--my-mixin);
   background-color: var(--color);
-}
-```
-
-## Planned features
-
-### Custom functions
-
-#### Example usage
-
-```
-:root {
-  --primary-color: red;
-}
-
-.button {
-  color: darken(var(--primary-color)); /* `darken` is a custom function */
 }
 ```
