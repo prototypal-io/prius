@@ -1,5 +1,6 @@
 import StyleSheetManager from './style-sheet-manager';
 import { updateTree, removeTree } from './dom';
+import { generateMeta } from 'prius/meta';
 
 const mutationObserverOptions = {
   attributeFilter: ['class', 'style'],
@@ -9,7 +10,16 @@ const mutationObserverOptions = {
 };
 
 export default class Prius {
-  constructor(meta) {
+  constructor() {
+    this.customFunctions = {};
+  }
+
+  registerFunction(name, callback) {
+    this.customFunctions[name] = callback;
+  }
+
+  setup(css) {
+    let meta = generateMeta(css, this.customFunctions);
     this.styleSheetManager = new StyleSheetManager(meta);
     this.mutationObserver = new window.MutationObserver(records => {
       processMutationRecords(this, records);
@@ -32,7 +42,7 @@ export default class Prius {
   }
 
   updateTree(element) {
-    updateTree(this.styleSheetManager, element);
+    updateTree(this.styleSheetManager, element, this.customFunctions);
   }
 
   removeTree(element) {
