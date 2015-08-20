@@ -24,6 +24,17 @@ export default class StyleSheetManager {
     this.selectorsForMixins = getSelectorsByMixin(meta);
   }
 
+  mergeNewMeta(meta) {
+    let newMeta = {};
+    for (let key in this.meta) {
+      newMeta[key] = this.meta[key];
+    }
+    for (let key in meta) {
+      newMeta[key] = meta[key];
+    }
+    this.setMeta(newMeta);
+  }
+
   connect(node=document.head) {
     node.appendChild(this.styleElement);
     this.sheet = this.styleElement.sheet;

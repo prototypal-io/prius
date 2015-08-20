@@ -1,7 +1,7 @@
 import { parse } from 'cascada';
 
 export function generateMeta(cssString, customFunctions) {
-  var meta = { ':root': [] };
+  var meta = {};
 
   appendMeta(meta, cssString, customFunctions);
 

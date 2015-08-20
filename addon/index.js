@@ -34,7 +34,7 @@ export default class Prius {
     });
   }
 
-  observe(node=document.body) {
+  observe(node=document) {
     this.styleSheetManager.connect();
     this.mutationObserver.observe(node, mutationObserverOptions);
   }
@@ -56,6 +56,11 @@ export default class Prius {
   removeTree(element) {
     removeTree(this.styleSheetManager, element);
   }
+
+  addStyleElement(element) {
+    let meta = this.generateMeta(element.innerText);
+    this.styleSheetManager.mergeNewMeta(meta);
+  }
 }
 
 function processMutationRecords(prius, records) {
@@ -65,6 +70,10 @@ function processMutationRecords(prius, records) {
       let removedNodes = record.removedNodes;
 
       for (let i = 0; i < addedNodes.length; i++) {
+        if (addedNodes[i].tagName === 'STYLE') {
+          prius.addStyleElement(addedNodes[i]);
+        }
+
         prius.updateTree(addedNodes[i]);
       }
 

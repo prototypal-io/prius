@@ -2,10 +2,10 @@ import Ember from 'ember';
 import Prius from 'prius';
 
 export default Ember.Service.extend({
-  setup(meta, rootElement) {
+  setup(meta) {
     this.prius = new Prius();
     this.prius.setup(meta);
-    this.prius.observe(rootElement);
+    this.prius.observe();
   },
 
   willDestroy: function() {

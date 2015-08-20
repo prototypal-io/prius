@@ -508,6 +508,31 @@ test('[regression] custom properties do not clobber subsequent properties', func
   assert.ok(!('bar' in meta['.item']));
 });
 
+test('detecting new stylesheets', function(assert) {
+  initPrius(`
+    :root {
+      --foo: 1px;
+    }
+  `);
+
+  prius.forceUpdate();
+
+  appendStyle(`
+    .foo {
+      height: var(--foo);
+    }
+  `);
+
+  setContent(`
+    <div id="subject" class="foo"></div>
+  `);
+  prius.forceUpdate();
+
+  assert.equalStyle(getSubject(), {
+    height: "1px"
+  });
+});
+
 function getSubject(id) {
   return document.getElementById(id ? `subject-${id}` : 'subject');
 }
@@ -517,16 +542,19 @@ function setContent(html) {
   content.innerHTML = html;
 }
 
-function initPrius(css, modifiedPrius) {
+function appendStyle(css) {
   let fixture = document.getElementById('qunit-fixture');
-
   let style = document.createElement('style');
   style.appendChild(document.createTextNode(css));
   fixture.appendChild(style);
+}
+
+function initPrius(css, modifiedPrius) {
+  appendStyle(css);
 
   prius = modifiedPrius || new Prius();
   prius.parse(css);
-  prius.observe(fixture);
+  prius.observe();
 }
 
 function injectEqualStyleAssertion() {
